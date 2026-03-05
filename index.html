@@ -1,0 +1,1882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- BUILD: 20260305220000 -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Table Bank</title>
+  <meta name="description" content="Groups' Table Banking Finance Manager" />
+  <meta name="theme-color" content="#2d6a4f" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green: #2d6a4f;
+      --green-light: #95d5b2;
+      --green-pale: #f7faf8;
+      --green-border: #e8f0ec;
+      --red: #c0392b;
+      --orange: #e67e22;
+      --purple: #8e44ad;
+      --bg: #f5f5f0;
+      --white: #ffffff;
+      --border: #e8e8e8;
+      --text: #1a1a1a;
+      --muted: #888888;
+      --radius: 10px;
+    }
+
+    body {
+      font-family: 'Outfit', 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* Header */
+    #header {
+      background: var(--green);
+      padding: 0 20px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: 0 2px 8px #0002;
+    }
+    #header-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    #logo { cursor: pointer; }
+    #logo-title { color: #fff; font-weight: 700; font-size: 18px; letter-spacing: -0.01em; }
+    #logo-sub { color: var(--green-light); font-size: 11px; margin-top: -2px; }
+
+    #nav { display: flex; gap: 4px; }
+    .nav-btn {
+      background: transparent;
+      color: #b7e4c7;
+      border: none;
+      border-radius: 5px;
+      padding: 6px 13px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.15s;
+    }
+    .nav-btn.active { background: #fff; color: var(--green); }
+
+    /* Content */
+    #content { max-width: 860px; margin: 0 auto; padding: 24px 16px; }
+
+    /* Cards */
+    .card {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 6px;
+      padding: 9px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      letter-spacing: 0.02em;
+      border: none;
+      transition: opacity 0.15s;
+    }
+    .btn:hover { opacity: 0.84; }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-primary   { background: var(--green); color: #fff; }
+    .btn-secondary { background: var(--white); color: var(--green); border: 1.5px solid var(--green); }
+    .btn-danger    { background: var(--white); color: var(--red);   border: 1.5px solid var(--red); }
+    .btn-ghost     { background: transparent; color: var(--muted); }
+    .btn-sm        { padding: 6px 12px; font-size: 12px; }
+    .btn-icon {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #ccc;
+      padding: 4px 6px;
+      border-radius: 4px;
+      display: inline-flex;
+      align-items: center;
+      transition: color 0.15s;
+      font-size: 14px;
+    }
+    .btn-icon:hover { color: var(--red); }
+
+    /* Inputs */
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label { font-size: 12px; font-weight: 600; color: #555; letter-spacing: 0.05em; text-transform: uppercase; }
+    .field input, .field select, .field textarea {
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      padding: 9px 12px;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      background: #fafafa;
+      transition: border-color 0.15s;
+    }
+    .field input:focus, .field select:focus { border-color: var(--green); }
+    .field .err { color: var(--red); font-size: 13px; }
+
+    /* Stat boxes */
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 10px; margin-bottom: 24px; }
+    .stat-box { background: var(--green-pale); border: 1px solid var(--green-border); border-radius: 8px; padding: 14px 16px; }
+    .stat-label { font-size: 11px; color: var(--muted); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 4px; }
+    .stat-value { font-size: 18px; font-weight: 700; color: var(--text); }
+    .stat-sub   { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+    /* Page headings */
+    .page-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 22px; flex-wrap: wrap; gap: 12px; }
+    .page-title { font-size: 22px; font-weight: 700; }
+    .page-sub   { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+    /* Back link */
+    .back-link {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); font-size: 13px; font-weight: 500;
+      font-family: inherit; padding: 0; margin-bottom: 8px;
+      transition: color 0.15s;
+    }
+    .back-link:hover { color: var(--green); }
+
+    /* Group / member rows */
+    .row {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .row:hover { border-color: #2d6a4f40; box-shadow: 0 2px 10px #2d6a4f0d; }
+    .row-left { flex: 1; }
+    .row-name { font-weight: 700; font-size: 15px; }
+    .row-meta { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .row-right { display: flex; align-items: center; gap: 16px; }
+    .row-stat-label { font-size: 11px; color: #aaa; }
+    .row-stat-value { font-weight: 700; font-size: 14px; }
+
+    /* Txn history */
+    .txn-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 12px; background: #f9fafb; border-radius: 6px; font-size: 13px;
+      gap: 8px;
+    }
+    .txn-type { font-weight: 600; }
+    .txn-date { color: #aaa; font-size: 11px; margin-top: 1px; }
+    .txn-amount { font-weight: 700; }
+    .txn-pos { color: var(--green); }
+    .txn-neg { color: var(--red); }
+
+    /* Modal */
+    #modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: #00000048;
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    #modal-overlay.open { display: flex; }
+    #modal-box {
+      background: var(--white);
+      border-radius: 12px;
+      padding: 26px 28px;
+      min-width: 320px;
+      max-width: 480px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px #0003;
+    }
+    #modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    #modal-title { font-size: 16px; font-weight: 700; }
+    #modal-close { background: none; border: none; font-size: 22px; cursor: pointer; color: #bbb; line-height: 1; padding: 0; }
+    #modal-body { display: flex; flex-direction: column; gap: 14px; }
+
+    .flex-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .flex-end { justify-content: flex-end; }
+    .mt-8 { margin-top: 8px; }
+    .mt-16 { margin-top: 16px; }
+    .mt-24 { margin-top: 24px; }
+    .mb-12 { margin-bottom: 12px; }
+    .gap-8 { gap: 8px; }
+
+    /* Empty state */
+    .empty { text-align: center; padding: 52px 24px; color: #bbb; }
+    .empty-icon { font-size: 42px; margin-bottom: 10px; }
+    .empty-title { font-weight: 600; font-size: 15px; color: #aaa; }
+    .empty-sub { font-size: 13px; margin-top: 4px; }
+
+    /* Badge */
+    .badge {
+      display: inline-block;
+      border-radius: 4px; padding: 2px 8px;
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.04em; text-transform: uppercase;
+    }
+
+    /* Chevron */
+    .chevron { color: #ccc; display: flex; align-items: center; }
+
+    /* Install banner */
+    #install-banner {
+      display: none;
+      position: fixed;
+      bottom: 16px; left: 50%; transform: translateX(-50%);
+      background: var(--green); color: #fff;
+      border-radius: 10px; padding: 12px 20px;
+      display: none; align-items: center; gap: 12px;
+      box-shadow: 0 4px 20px #0003;
+      z-index: 300; font-size: 14px; font-weight: 500;
+      max-width: calc(100vw - 32px);
+    }
+    #install-banner.show { display: flex; }
+    #install-yes { background: #fff; color: var(--green); border: none; border-radius: 6px; padding: 6px 14px; font-weight: 700; cursor: pointer; font-size: 13px; font-family: inherit; }
+    #install-no  { background: none; border: none; color: #b7e4c7; cursor: pointer; font-size: 20px; line-height: 1; }
+
+    /* Daily Activity table */
+    .daily-act-header,
+    .daily-act-row {
+      display: grid;
+      grid-template-columns: 1fr repeat(3, auto);
+      gap: 6px 12px;
+      align-items: center;
+      padding: 8px 14px;
+      font-size: 13px;
+    }
+    .daily-act-header {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1.5px solid var(--border);
+      padding-bottom: 6px;
+      margin-bottom: 2px;
+    }
+    .daily-act-row {
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-weight: 500;
+    }
+    .daily-act-row:nth-child(even) { background: var(--green-pale); border-color: var(--green-border); }
+    .da-col-date { color: var(--text); font-weight: 600; }
+    .da-col-num  { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    .da-in   { color: var(--green); }
+    .da-out  { color: var(--red); }
+    .da-bank { font-weight: 700; }
+
+    @media (max-width: 599px) {
+      .daily-act-header,
+      .daily-act-row { grid-template-columns: 1fr repeat(3, auto); gap: 4px 8px; padding: 8px 10px; font-size: 12px; }
+      .daily-act-header { font-size: 10px; }
+    }
+
+    /* Member tile stats strip */
+    .member-stats-strip {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .member-stat-pill {
+      display: flex;
+      flex-direction: column;
+      background: var(--green-pale);
+      border: 1px solid var(--green-border);
+      border-radius: 7px;
+      padding: 5px 11px;
+      min-width: 80px;
+      flex: 1;
+    }
+    .msp-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 2px;
+    }
+    .msp-value {
+      font-size: 14px;
+      font-weight: 700;
+    }
+    .msp-green  { color: var(--green); }
+    .msp-orange { color: var(--orange); }
+    .msp-purple { color: var(--purple); }
+    .scroll-list { max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+    .scroll-list::-webkit-scrollbar { width: 4px; }
+    .scroll-list::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+
+    /* ── Mobile-first base overrides ──────────────────────────────────────── */
+
+    /* Nav: shrink labels on tiny screens */
+    @media (max-width: 359px) {
+      .nav-btn { padding: 5px 9px; font-size: 12px; }
+      #logo-title { font-size: 16px; }
+    }
+
+    /* Stat grid: always 2-col on phones */
+    @media (max-width: 599px) {
+      .stat-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .stat-value { font-size: 15px; }
+      .stat-sub   { font-size: 10px; }
+
+      /* Content breathing room */
+      #content { padding: 16px 12px; }
+
+      /* Page head: stack title and buttons */
+      .page-head { flex-direction: column; gap: 10px; }
+      .page-head > div:last-child { width: 100%; }
+      .page-head .flex-row { flex-wrap: wrap; gap: 8px; }
+      .page-head .flex-row .btn { flex: 1; min-width: 0; justify-content: center; font-size: 12px; padding: 8px 10px; }
+      .page-head .btn-primary { flex: 1 0 100%; }
+
+      /* Member rows: tighter, hide secondary stats if cramped */
+      .row { padding: 12px 14px; }
+      .row-right { gap: 10px; }
+      .row-stat-value { font-size: 13px; }
+
+      /* Transaction history rows */
+      .txn-row { padding: 8px 10px; }
+
+      /* Search result grid: 2 cols */
+      .search-bottom-grid { grid-template-columns: repeat(2, 1fr) !important; }
+
+      /* Modal as bottom sheet */
+      #modal-overlay {
+        align-items: flex-end;
+        padding: 0;
+      }
+      #modal-box {
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        max-height: 92vh;
+        border-radius: 20px 20px 0 0;
+        padding: 20px 18px 32px;
+        /* drag handle visual */
+        border-top: none;
+      }
+      #modal-box::before {
+        content: '';
+        display: block;
+        width: 40px; height: 4px;
+        background: #ddd;
+        border-radius: 2px;
+        margin: 0 auto 18px;
+      }
+      #modal-header { margin-bottom: 16px; }
+      #modal-title  { font-size: 15px; }
+
+      /* Stat grid inside modal */
+      #modal-body .stat-grid { grid-template-columns: repeat(2, 1fr); }
+
+      /* Tab bar in member modal: wrap */
+      #modal-body .btn-sm { font-size: 12px; padding: 6px 10px; }
+
+      /* Repayment breakdown text */
+      #modal-body { font-size: 13px; }
+
+      /* Hide secondary balance cols on phones — details visible in modal */
+      .row-extra-stat { display: none; }
+
+      /* Member modal info box: stack vertically */
+      .member-info-box { flex-direction: column !important; gap: 8px !important; }
+      .member-info-box .btn { align-self: flex-start; }
+
+      /* Dividend pay-all buttons: stack */
+      .div-pay-all-row { flex-direction: column !important; }
+      .div-pay-all-row .btn { width: 100% !important; justify-content: center; }
+    }
+
+    /* Tablet (≥ 600px) */
+    @media (min-width: 600px) {
+      #header-inner { height: 64px; }
+      #logo-title   { font-size: 20px; }
+      #logo-sub     { font-size: 12px; }
+      .nav-btn      { padding: 7px 18px; font-size: 14px; }
+
+      #content      { padding: 28px 24px; }
+
+      .page-title   { font-size: 26px; }
+      .stat-grid    { grid-template-columns: repeat(2, 1fr); }
+
+      #modal-box    { min-width: 480px; max-width: 540px; padding: 30px 32px; }
+
+      .row-name     { font-size: 16px; }
+
+      .scroll-list  { max-height: 340px; }
+    }
+
+    /* Desktop (≥ 900px) */
+    @media (min-width: 900px) {
+      #header-inner { max-width: 1100px; }
+      #content      { max-width: 1100px; padding: 36px 32px; }
+
+      .stat-grid    { grid-template-columns: repeat(4, 1fr); }
+
+      #modal-box    { max-width: 600px; }
+
+      .card         { padding: 24px 28px; }
+
+      .scroll-list  { max-height: 420px; }
+    }
+
+    /* Wide desktop (≥ 1280px) — two-column member list */
+    @media (min-width: 1280px) {
+      #header-inner { max-width: 1280px; }
+      #content      { max-width: 1280px; padding: 40px 48px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<div id="header">
+  <div id="header-inner">
+    <div id="logo" onclick="navigate('groups')">
+      <div id="logo-title">Table Bank</div>
+      <div id="logo-sub">Groups' Finance Manager</div>
+    </div>
+    <div id="nav">
+      <button class="nav-btn" data-nav="groups"  onclick="navigate('groups')">Groups</button>
+      <button class="nav-btn" data-nav="search"  onclick="navigate('search')">Search</button>
+      <button class="nav-btn" data-nav="totals"  onclick="navigate('totals')">Totals</button>
+    </div>
+  </div>
+</div>
+
+<div id="content"></div>
+
+<!-- Modal -->
+<div id="modal-overlay" onclick="closeModal(event)">
+  <div id="modal-box" onclick="event.stopPropagation()">
+    <div id="modal-header">
+      <div id="modal-title"></div>
+      <button id="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<!-- Install banner -->
+<div id="install-banner">
+  <span>Install Table Bank</span>
+  <button id="install-yes">Install</button>
+  <button id="install-no">×</button>
+</div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// DATA
+// ─────────────────────────────────────────────────────────────────────────────
+const LOAN_INT = 0.015;
+const ADV_INT  = 0.10;
+const LOAN_MULT = 2.5;
+
+function loadState() {
+  try { return JSON.parse(localStorage.getItem('tb_v2')) || emptyState(); } catch { return emptyState(); }
+}
+function emptyState() { return { groups: {}, members: {}, memberships: [] }; }
+function saveState() { localStorage.setItem('tb_v2', JSON.stringify(state)); }
+
+let state = loadState();
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CALC
+// ─────────────────────────────────────────────────────────────────────────────
+function calcMs(ms) {
+  let shares = 0, loan = 0, adv = 0;
+  for (const t of ms.transactions) {
+    if (t.type === 'SD') shares += t.amount;
+    if (t.type === 'SW') shares -= t.amount;
+    if (t.type === 'LI') loan   += t.amount;
+    if (t.type === 'LP') loan   -= t.amount;
+    if (t.type === 'LX') loan   += t.amount; // loan interest added to balance
+    if (t.type === 'AI') adv    += t.amount;
+    if (t.type === 'AP') adv    -= t.amount;
+    if (t.type === 'AX') adv    += t.amount; // advance interest added to balance
+    if (t.type === 'DV') shares += t.amount; // dividend added to shares (if chosen)
+  }
+  const loanInt = loan > 0 ? loan * LOAN_INT : 0;
+  const advInt  = adv  > 0 ? adv  * ADV_INT  : 0;
+  return { shares, loan, adv, loanInt, advInt, maxLoan: shares * LOAN_MULT };
+}
+
+// ── Dividend helpers ──────────────────────────────────────────────────────────
+// Interest collected in a year = all LX + AX transactions charged that year
+// (these represent actual interest the group earned on its loans/advances)
+function groupInterestCollected(gid, year) {
+  let total = 0;
+  for (const ms of state.memberships.filter(m => m.gid === gid)) {
+    for (const t of ms.transactions) {
+      if ((t.type === 'LX' || t.type === 'AX') && new Date(t.date).getFullYear() === year) {
+        total += t.amount;
+      }
+    }
+  }
+  return total;
+}
+
+function calcMemberDividend(msId, gid, year) {
+  const ms = state.memberships.find(m => m.id === msId);
+  if (!ms) return 0;
+  // Member's shares as of end of that year
+  const yearEnd = new Date(year, 11, 31, 23, 59, 59);
+  let shares = 0;
+  for (const t of ms.transactions) {
+    if (new Date(t.date) <= yearEnd) {
+      if (t.type === 'SD') shares += t.amount;
+      if (t.type === 'SW') shares -= t.amount;
+      if (t.type === 'DV') shares += t.amount;
+    }
+  }
+  // Total group shares as of end of that year
+  let totalShares = 0;
+  for (const m of state.memberships.filter(m => m.gid === gid)) {
+    for (const t of m.transactions) {
+      if (new Date(t.date) <= yearEnd) {
+        if (t.type === 'SD') totalShares += t.amount;
+        if (t.type === 'SW') totalShares -= t.amount;
+        if (t.type === 'DV') totalShares += t.amount;
+      }
+    }
+  }
+  if (totalShares <= 0 || shares <= 0) return 0;
+  const pool = groupInterestCollected(gid, year);
+  return parseFloat(((shares / totalShares) * pool).toFixed(2));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AUTO INTEREST ACCRUAL
+// Runs on load. For each membership with an active loan or advance, checks how
+// many full calendar months have elapsed since the last interest transaction
+// (or since the loan was first issued if no interest has been applied yet),
+// then inserts one LX/AX transaction per missed month at the balance that
+// existed at the START of that month.
+// ─────────────────────────────────────────────────────────────────────────────
+function applyMonthlyInterest() {
+  const now = new Date();
+  // Work in UTC-like month arithmetic: year*12 + month index
+  const toMonthIdx = d => d.getFullYear() * 12 + d.getMonth();
+  const nowIdx = toMonthIdx(now);
+  let changed = false;
+
+  for (const ms of state.memberships) {
+    // Process loan interest
+    changed = accrueInterest(ms, 'LI', 'LP', 'LX', LOAN_INT, nowIdx, toMonthIdx) || changed;
+    // Process advance interest
+    changed = accrueInterest(ms, 'AI', 'AP', 'AX', ADV_INT,  nowIdx, toMonthIdx) || changed;
+  }
+
+  if (changed) {
+    saveState();
+    console.log('[TableBank] Monthly interest applied and saved.');
+  }
+}
+
+function accrueInterest(ms, issueType, payType, intType, rate, nowIdx, toMonthIdx) {
+  // Find first issue transaction
+  const firstIssue = ms.transactions.find(t => t.type === issueType);
+  if (!firstIssue) return false;
+
+  // Find the last interest transaction already applied
+  const lastInt = [...ms.transactions].reverse().find(t => t.type === intType);
+
+  // The month AFTER the last interest applied, or the month AFTER issuance
+  const startDate = lastInt ? new Date(lastInt.date) : new Date(firstIssue.date);
+  let startIdx = toMonthIdx(startDate) + 1; // next month after last event
+
+  if (startIdx > nowIdx) return false; // nothing due yet
+
+  let madeChange = false;
+
+  // Apply one transaction per due month
+  for (let mIdx = startIdx; mIdx <= nowIdx; mIdx++) {
+    // Compute the balance at the START of this month by replaying all
+    // transactions strictly before this month
+    let bal = 0;
+    for (const t of ms.transactions) {
+      if (toMonthIdx(new Date(t.date)) < mIdx) {
+        if (t.type === issueType) bal += t.amount;
+        if (t.type === payType)   bal -= t.amount;
+        if (t.type === intType)   bal += t.amount;
+      }
+    }
+    if (bal <= 0) continue; // loan fully paid by this point
+
+    const interest = parseFloat((bal * rate).toFixed(2));
+    if (interest <= 0) continue;
+
+    // Date stamp: 1st day of that month
+    const year  = Math.floor(mIdx / 12);
+    const month = mIdx % 12;
+    const intDate = new Date(year, month, 1).toISOString();
+
+    ms.transactions.push({
+      id: uid(),
+      date: intDate,
+      type: intType,
+      amount: interest,
+      note: 'Auto interest (' + (rate * 100) + '%/mo on ' + fmt(bal) + ')'
+    });
+    madeChange = true;
+  }
+  return madeChange;
+}
+
+function groupStats(gid) {
+  const list = state.memberships.filter(m => m.gid === gid);
+  let shares = 0, loans = 0, advs = 0;
+  for (const ms of list) { const c = calcMs(ms); shares += c.shares; loans += c.loan; advs += c.adv; }
+  return { shares, loans, advs, balance: shares - loans - advs, count: list.length };
+}
+
+// Returns an array of { dateKey, label, cashIn, cashOut, banked } sorted newest-first.
+// cashIn  = money coming INTO the group  (SD, LP, AP)
+// cashOut = money going OUT of the group (LI, AI, SW)
+// banked  = cashIn − cashOut (net cash the group should have put in the bank that day)
+function groupDailyActivity(gid) {
+  const CASH_IN  = new Set(['SD', 'LP', 'AP']);
+  const CASH_OUT = new Set(['LI', 'AI', 'SW']);
+  const days = {};
+
+  for (const ms of state.memberships.filter(m => m.gid === gid)) {
+    for (const t of ms.transactions) {
+      if (!CASH_IN.has(t.type) && !CASH_OUT.has(t.type)) continue;
+      // Group by calendar date in local time
+      const d = new Date(t.date);
+      const key = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      if (!days[key]) days[key] = { dateKey: key, cashIn: 0, cashOut: 0 };
+      if (CASH_IN.has(t.type))  days[key].cashIn  += t.amount;
+      if (CASH_OUT.has(t.type)) days[key].cashOut += t.amount;
+    }
+  }
+
+  return Object.values(days)
+    .map(d => ({ ...d, banked: d.cashIn - d.cashOut }))
+    .sort((a, b) => b.dateKey.localeCompare(a.dateKey));
+}
+
+function allStats() {
+  let shares = 0, loans = 0, advs = 0, balance = 0;
+  for (const gid of Object.keys(state.groups)) {
+    const s = groupStats(gid);
+    shares += s.shares; loans += s.loans; advs += s.advs; balance += s.balance;
+  }
+  return { shares, loans, advs, balance, count: Object.keys(state.groups).length };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// HELPERS
+// ─────────────────────────────────────────────────────────────────────────────
+let _uid = 0;
+function uid() { return Date.now().toString(36) + (++_uid).toString(36); }
+
+function fmt(n) {
+  return 'KES ' + Number(n || 0).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtDate(iso) {
+  return new Date(iso).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function el(tag, attrs = {}, ...children) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === 'class') e.className = v;
+    else if (k.startsWith('on')) e.addEventListener(k.slice(2).toLowerCase(), v);
+    else e.setAttribute(k, v);
+  }
+  for (const c of children) {
+    if (c == null) continue;
+    e.append(typeof c === 'string' ? document.createTextNode(c) : c);
+  }
+  return e;
+}
+
+function html(str) {
+  const d = document.createElement('div');
+  d.innerHTML = str;
+  return d.firstElementChild;
+}
+
+function svgChevron() {
+  const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  s.setAttribute('width', '16'); s.setAttribute('height', '16');
+  s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('fill', 'none');
+  s.setAttribute('stroke', 'currentColor'); s.setAttribute('stroke-width', '2.5');
+  s.setAttribute('stroke-linecap', 'round'); s.setAttribute('stroke-linejoin', 'round');
+  s.innerHTML = '<polyline points="9 18 15 12 9 6"/>';
+  return s;
+}
+
+function svgBack() {
+  const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  s.setAttribute('width', '16'); s.setAttribute('height', '16');
+  s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('fill', 'none');
+  s.setAttribute('stroke', 'currentColor'); s.setAttribute('stroke-width', '2.5');
+  s.setAttribute('stroke-linecap', 'round'); s.setAttribute('stroke-linejoin', 'round');
+  s.innerHTML = '<polyline points="15 18 9 12 15 6"/>';
+  return s;
+}
+
+function svgTrash() {
+  const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  s.setAttribute('width', '14'); s.setAttribute('height', '14');
+  s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('fill', 'none');
+  s.setAttribute('stroke', 'currentColor'); s.setAttribute('stroke-width', '2');
+  s.setAttribute('stroke-linecap', 'round'); s.setAttribute('stroke-linejoin', 'round');
+  s.innerHTML = '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>';
+  return s;
+}
+
+function makeTrashBtn(title, onDelete) {
+  const btn = el('button', { class: 'btn-icon', title });
+  btn.appendChild(svgTrash());
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    onDelete();
+  });
+  return btn;
+}
+
+function statBox(label, value, sub) {
+  return el('div', { class: 'stat-box' },
+    el('div', { class: 'stat-label' }, label),
+    el('div', { class: 'stat-value' }, value),
+    sub ? el('div', { class: 'stat-sub' }, sub) : null
+  );
+}
+
+function fieldEl(label, input) {
+  const wrap = el('div', { class: 'field' });
+  if (label) wrap.appendChild(el('label', {}, label));
+  wrap.appendChild(input);
+  return wrap;
+}
+
+function inputEl(attrs = {}) {
+  return el('input', attrs);
+}
+
+function selectEl(options, value) {
+  const s = el('select');
+  for (const [k, v] of Object.entries(options)) {
+    const o = el('option', { value: k }, v);
+    if (k === value) o.selected = true;
+    s.appendChild(o);
+  }
+  return s;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ROUTING
+// ─────────────────────────────────────────────────────────────────────────────
+let currentPage = { name: 'groups' };
+let navHistory = [];
+
+function _updateNav(name) {
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.nav === (name === 'group' ? 'groups' : name));
+  });
+}
+
+function navigate(name, params = {}) {
+  if (currentPage.name) navHistory.push({ ...currentPage });
+  currentPage = { name, ...params };
+  // Keep browser history stack filled so hardware back button is always interceptable
+  history.pushState({ tbNav: true }, '');
+  renderPage();
+  _updateNav(name);
+  window.scrollTo(0, 0);
+}
+
+function doGoBack() {
+  // Pure JS back — does NOT touch browser history (safe to call rapidly)
+  const overlay = document.getElementById('modal-overlay');
+  if (overlay.classList.contains('open')) {
+    closeModal();
+    return;
+  }
+  if (navHistory.length === 0) return;
+  currentPage = navHistory.pop();
+  renderPage();
+  _updateNav(currentPage.name);
+  window.scrollTo(0, 0);
+}
+
+function renderPage() {
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+  const { name } = currentPage;
+  if (name === 'groups') content.appendChild(renderGroupsPage());
+  else if (name === 'group') content.appendChild(renderGroupPage(currentPage.gid));
+  else if (name === 'search') content.appendChild(renderSearchPage());
+  else if (name === 'totals') content.appendChild(renderTotalsPage());
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GROUPS LIST PAGE
+// ─────────────────────────────────────────────────────────────────────────────
+function renderGroupsPage() {
+  const groups = Object.values(state.groups);
+  const wrap = el('div', {});
+
+  // heading
+  const head = el('div', { class: 'page-head' },
+    el('div', {},
+      el('div', { class: 'page-title' }, 'Groups'),
+      el('div', { class: 'page-sub' }, groups.length + ' registered group' + (groups.length !== 1 ? 's' : ''))
+    ),
+    el('button', { class: 'btn btn-primary', onclick: () => openAddGroupModal() }, '+ New Group')
+  );
+  wrap.appendChild(head);
+
+  if (groups.length === 0) {
+    wrap.appendChild(el('div', { class: 'empty' },
+      el('div', { class: 'empty-icon' }, '🏦'),
+      el('div', { class: 'empty-title' }, 'No groups yet'),
+      el('div', { class: 'empty-sub' }, 'Create your first group to get started')
+    ));
+    return wrap;
+  }
+
+  const list = el('div', { style: 'display:flex;flex-direction:column;gap:10px' });
+  for (const g of groups) {
+    const s = groupStats(g.id);
+    const gid = g.id;
+
+    const row = el('div', { class: 'row group-tile', style: 'flex-direction:column;align-items:stretch;gap:10px;cursor:pointer' });
+    row.addEventListener('click', (e) => { if (!e.target.closest('.btn-icon')) navigate('group', { gid }); });
+
+    // Top line
+    const topLine = el('div', { style: 'display:flex;align-items:center;justify-content:space-between;gap:8px' });
+    const info = el('div', { style: 'flex:1;min-width:0' },
+      el('div', { class: 'row-name' }, g.name),
+      el('div', { class: 'row-meta' }, g.area + ' · ' + s.count + ' member' + (s.count !== 1 ? 's' : ''))
+    );
+    const trashBtn = makeTrashBtn('Delete group', () => confirmDeleteGroup(gid));
+    const chevron = el('span', { class: 'chevron' }); chevron.appendChild(svgChevron());
+    topLine.append(info, trashBtn, chevron);
+
+    // Stats strip — 4 pills always visible
+    const strip = el('div', { class: 'member-stats-strip' });
+    strip.appendChild(el('div', { class: 'member-stat-pill' },
+      el('span', { class: 'msp-label' }, 'Shares'),
+      el('span', { class: 'msp-value msp-green' }, fmt(s.shares))
+    ));
+    strip.appendChild(el('div', { class: 'member-stat-pill' },
+      el('span', { class: 'msp-label' }, 'Loans'),
+      el('span', { class: 'msp-value', style: s.loans > 0 ? 'color:var(--orange)' : '' }, fmt(s.loans))
+    ));
+    strip.appendChild(el('div', { class: 'member-stat-pill' },
+      el('span', { class: 'msp-label' }, 'Advances'),
+      el('span', { class: 'msp-value', style: s.advs > 0 ? 'color:var(--purple)' : '' }, fmt(s.advs))
+    ));
+    strip.appendChild(el('div', { class: 'member-stat-pill' },
+      el('span', { class: 'msp-label' }, 'Balance'),
+      el('span', { class: 'msp-value', style: 'color:' + (s.balance >= 0 ? 'var(--green)' : 'var(--red)') }, fmt(s.balance))
+    ));
+
+    row.append(topLine, strip);
+    list.appendChild(row);
+  }
+  wrap.appendChild(list);
+  return wrap;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SINGLE GROUP PAGE
+// ─────────────────────────────────────────────────────────────────────────────
+function renderGroupPage(gid) {
+  const g = state.groups[gid];
+  if (!g) {
+    const wrap = el('div', { class: 'empty' }, el('div', {}, 'Group not found.'));
+    wrap.appendChild(el('button', { class: 'btn btn-ghost mt-16', onclick: () => navigate('groups') }, '← Back'));
+    return wrap;
+  }
+
+  const s = groupStats(gid);
+  const members = state.memberships
+    .filter(ms => ms.gid === gid)
+    .sort((a, b) => {
+      const na = isNaN(a.memberNo) ? a.memberNo : Number(a.memberNo);
+      const nb = isNaN(b.memberNo) ? b.memberNo : Number(b.memberNo);
+      if (typeof na === "number" && typeof nb === "number") return na - nb;
+      return String(na).localeCompare(String(nb));
+    });
+  const wrap = el('div', {});
+
+  // Back link
+  const back = el('button', { class: 'back-link', style: 'font-size: 20px' });
+  back.appendChild(svgBack());
+  back.appendChild(document.createTextNode(' All Groups'));
+  back.addEventListener('click', () => navigate('groups'));
+  wrap.appendChild(back);
+
+  // Head
+  const head = el('div', { class: 'page-head' },
+    el('div', {},
+      el('div', { class: 'page-title' }, g.name),
+      el('div', { class: 'page-sub' }, g.area + ' · ' + s.count + ' member' + (s.count !== 1 ? 's' : ''))
+    ),
+    el('div', { class: 'flex-row', style: 'flex-wrap:wrap;gap:8px' },
+      el('button', { class: 'btn btn-danger btn-sm', onclick: () => confirmDeleteGroup(gid) }, 'Delete Group'),
+      el('button', { class: 'btn btn-secondary btn-sm', onclick: () => openDividendModal(gid) }, '🎁 Dividends'),
+      el('button', { class: 'btn btn-primary', style: 'flex:1 0 100%', onclick: () => openAddMemberModal(gid) }, '+ Add Member')
+    )
+  );
+  wrap.appendChild(head);
+
+  // Stats
+  const sg = el('div', { class: 'stat-grid' },
+    statBox('Total Shares', fmt(s.shares)),
+    statBox('Loans Out', fmt(s.loans)),
+    statBox('Advances Out', fmt(s.advs)),
+    statBox('Group Balance', fmt(s.balance))
+  );
+  wrap.appendChild(sg);
+
+  // Members section title
+  wrap.appendChild(el('div', { style: 'font-weight:700;font-size:15px;margin-bottom:12px' }, 'Members'));
+
+  if (members.length === 0) {
+    wrap.appendChild(el('div', { class: 'empty' },
+      el('div', { class: 'empty-icon' }, '👤'),
+      el('div', { class: 'empty-title' }, 'No members yet'),
+      el('div', { class: 'empty-sub' }, 'Add the first member to this group')
+    ));
+    return wrap;
+  }
+
+  const list = el('div', { style: 'display:flex;flex-direction:column;gap:8px' });
+
+  for (const ms of members) {
+    const mem = state.members[ms.mid];
+    if (!mem) continue;
+    const c = calcMs(ms);
+    const msId = ms.id;
+
+    const row = el('div', { class: 'row member-tile', style: 'flex-direction:column;align-items:stretch;gap:10px;cursor:pointer' });
+    row.addEventListener('click', (e) => { if (!e.target.closest('.btn-icon')) openMemberModal(msId); });
+
+    // ── Top line: name/meta + actions ──
+    const topLine = el('div', { style: 'display:flex;align-items:center;justify-content:space-between;gap:8px' });
+
+    const info = el('div', { style: 'flex:1;min-width:0' },
+      el('div', { class: 'row-name', style: 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis' }, mem.name),
+      el('div', { class: 'row-meta' }, '#' + ms.memberNo + ' · ' + mem.phone + ' · ID: ' + mem.idNo)
+    );
+
+    const trashBtn = makeTrashBtn('Remove member from group', () => confirmDeleteMembership(msId));
+    const chevron = el('span', { class: 'chevron' });
+    chevron.appendChild(svgChevron());
+
+    topLine.append(info, trashBtn, chevron);
+
+    // ── Stats strip ──
+    const statsStrip = el('div', { class: 'member-stats-strip' });
+
+    const sPill = el('div', { class: 'member-stat-pill' },
+      el('span', { class: 'msp-label' }, 'Shares'),
+      el('span', { class: 'msp-value msp-green' }, fmt(c.shares))
+    );
+    statsStrip.appendChild(sPill);
+
+    if (c.loan > 0) {
+      statsStrip.appendChild(el('div', { class: 'member-stat-pill' },
+        el('span', { class: 'msp-label' }, 'Loan'),
+        el('span', { class: 'msp-value msp-orange' }, fmt(c.loan))
+      ));
+    }
+    if (c.adv > 0) {
+      statsStrip.appendChild(el('div', { class: 'member-stat-pill' },
+        el('span', { class: 'msp-label' }, 'Advance'),
+        el('span', { class: 'msp-value msp-purple' }, fmt(c.adv))
+      ));
+    }
+
+    row.appendChild(topLine);
+    row.appendChild(statsStrip);
+    list.appendChild(row);
+  }
+  wrap.appendChild(list);
+
+  // ── Daily Activity ──────────────────────────────────────────────────────────
+  const activity = groupDailyActivity(gid);
+  wrap.appendChild(el('div', { style: 'font-weight:700;font-size:15px;margin:28px 0 12px' }, 'Daily Activity'));
+
+  if (activity.length === 0) {
+    wrap.appendChild(el('div', { class: 'empty', style: 'padding:24px' },
+      el('div', { class: 'empty-sub' }, 'No transactions recorded yet')
+    ));
+  } else {
+    // Header row
+    const headerRow = el('div', { class: 'daily-act-header' },
+      el('span', { class: 'da-col-date' }, 'Date'),
+      el('span', { class: 'da-col-num da-in' },  'Cash In'),
+      el('span', { class: 'da-col-num da-out' }, 'Cash Out'),
+      el('span', { class: 'da-col-num da-bank' }, 'Banked')
+    );
+    wrap.appendChild(headerRow);
+
+    const actList = el('div', { style: 'display:flex;flex-direction:column;gap:4px' });
+    for (const day of activity) {
+      // Pretty-print date
+      const [y, m, d] = day.dateKey.split('-').map(Number);
+      const label = new Date(y, m - 1, d).toLocaleDateString('en-KE', { day: 'numeric', month: 'short', year: 'numeric' });
+      const bankedPos = day.banked >= 0;
+
+      const row = el('div', { class: 'daily-act-row' },
+        el('span', { class: 'da-col-date' }, label),
+        el('span', { class: 'da-col-num da-in' },  day.cashIn  > 0 ? fmt(day.cashIn)  : '—'),
+        el('span', { class: 'da-col-num da-out' }, day.cashOut > 0 ? fmt(day.cashOut) : '—'),
+        el('span', { class: 'da-col-num da-bank', style: 'color:' + (bankedPos ? 'var(--green)' : 'var(--red)') }, fmt(day.banked))
+      );
+      actList.appendChild(row);
+    }
+    wrap.appendChild(actList);
+  }
+
+  return wrap;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SEARCH PAGE
+// ─────────────────────────────────────────────────────────────────────────────
+function renderSearchPage() {
+  const wrap = el('div', {});
+  wrap.appendChild(el('div', { class: 'page-title', style: 'margin-bottom:16px' }, 'Search Member'));
+
+  const searchWrap = el('div', { class: 'field' });
+  searchWrap.appendChild(el('label', {}, 'Search by name, ID number, phone, or member number'));
+  const inp = inputEl({ placeholder: 'e.g. Jane, 12345678, 0712…', style: 'font-size:15px' });
+  searchWrap.appendChild(inp);
+  wrap.appendChild(searchWrap);
+
+  const results = el('div', { style: 'margin-top:20px;display:flex;flex-direction:column;gap:12px' });
+  wrap.appendChild(results);
+
+  inp.addEventListener('input', () => {
+    const q = inp.value.trim().toLowerCase();
+    results.innerHTML = '';
+    if (!q) return;
+
+    const matched = Object.values(state.members).filter(m =>
+      m.name.toLowerCase().includes(q) ||
+      m.idNo.toLowerCase().includes(q) ||
+      m.phone.toLowerCase().includes(q) ||
+      state.memberships.some(ms => ms.mid === m.id && ms.memberNo.toString().toLowerCase().includes(q))
+    );
+
+    if (matched.length === 0) {
+      results.appendChild(el('div', { class: 'empty' }, el('div', { class: 'empty-sub' }, 'No members found')));
+      return;
+    }
+
+    for (const mem of matched) {
+      const card = el('div', { class: 'card' });
+      card.appendChild(el('div', { style: 'font-weight:700;font-size:16px' }, mem.name));
+      card.appendChild(el('div', { style: 'font-size:13px;color:var(--muted);margin-top:2px' }, 'ID: ' + mem.idNo + ' · Phone: ' + mem.phone));
+
+      const mslist = state.memberships.filter(ms => ms.mid === mem.id);
+      const msWrap = el('div', { style: 'margin-top:14px;display:flex;flex-direction:column;gap:8px' });
+      for (const ms of mslist) {
+        const g = state.groups[ms.gid];
+        const c = calcMs(ms);
+        const msId = ms.id;
+        const msRow = el('div', { style: 'padding:10px 14px;background:#f9fafb;border-radius:8px;border:1.5px solid var(--border);cursor:pointer' });
+        msRow.addEventListener('click', () => openMemberModal(msId));
+        msRow.addEventListener('mouseenter', () => msRow.style.borderColor = '#2d6a4f40');
+        msRow.addEventListener('mouseleave', () => msRow.style.borderColor = 'var(--border)');
+
+        const top = el('div', { style: 'display:flex;justify-content:space-between;align-items:flex-start' },
+          el('div', {},
+            el('div', { style: 'font-weight:600' }, g ? g.name : '(deleted group)'),
+            el('div', { style: 'font-size:12px;color:var(--muted)' }, (g ? g.area + ' · ' : '') + 'Member #' + ms.memberNo)
+          ),
+          el('div', { style: 'text-align:right' },
+            el('div', { style: 'font-size:12px;color:var(--muted)' }, 'Shares'),
+            el('div', { style: 'font-weight:700;color:var(--green)' }, fmt(c.shares))
+          )
+        );
+        const bottom = el('div', { style: 'display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px', class: 'search-bottom-grid' },
+          el('div', { style: 'font-size:12px' }, el('span', { style: 'color:var(--muted)' }, 'Loan: '), el('b', {}, fmt(c.loan))),
+          el('div', { style: 'font-size:12px' }, el('span', { style: 'color:var(--muted)' }, 'Advance: '), el('b', {}, fmt(c.adv))),
+          el('div', { style: 'font-size:12px' }, el('span', { style: 'color:var(--muted)' }, 'Interest: '), el('b', {}, fmt(c.loanInt + c.advInt)))
+        );
+        msRow.appendChild(top);
+        msRow.appendChild(bottom);
+        msWrap.appendChild(msRow);
+      }
+      card.appendChild(msWrap);
+      results.appendChild(card);
+    }
+  });
+
+  inp.focus();
+  return wrap;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TOTALS PAGE
+// ─────────────────────────────────────────────────────────────────────────────
+function renderTotalsPage() {
+  const all = allStats();
+  const groups = Object.values(state.groups);
+  const wrap = el('div', {});
+
+  wrap.appendChild(el('div', { class: 'page-title', style: 'margin-bottom:4px' }, 'All Groups — Totals'));
+  wrap.appendChild(el('div', { class: 'page-sub', style: 'margin-bottom:20px' }, all.count + ' group' + (all.count !== 1 ? 's' : '') + ' combined'));
+
+  wrap.appendChild(el('div', { class: 'stat-grid' },
+    statBox('Total Shares', fmt(all.shares)),
+    statBox('Total Loans', fmt(all.loans)),
+    statBox('Total Advances', fmt(all.advs)),
+    statBox('Net Balance', fmt(all.balance))
+  ));
+
+  wrap.appendChild(el('div', { style: 'font-weight:700;font-size:15px;margin-bottom:12px' }, 'Breakdown by Group'));
+
+  if (groups.length === 0) {
+    wrap.appendChild(el('div', { class: 'empty', style: 'padding:24px' }, el('div', { class: 'empty-sub' }, 'No groups yet')));
+    return wrap;
+  }
+
+  const list = el('div', { style: 'display:flex;flex-direction:column;gap:10px' });
+  for (const g of groups) {
+    const s = groupStats(g.id);
+    const gid = g.id;
+
+    const row = el('div', { class: 'row' });
+    const left = el('div', { class: 'row-left' },
+      el('div', { class: 'row-name' }, g.name),
+      el('div', { class: 'row-meta' }, g.area + ' · ' + s.count + ' members')
+    );
+    const right = el('div', { class: 'row-right' });
+    const sharesEl = el('div', { style: 'font-size:13px' }, el('span', { style: 'color:var(--muted)' }, 'Shares '), el('b', {}, fmt(s.shares)));
+    const loansEl  = el('div', { style: 'font-size:13px' }, el('span', { style: 'color:var(--muted)' }, 'Loans '),  el('b', {}, fmt(s.loans)));
+    const balEl    = el('div', { style: 'font-size:13px' }, el('span', { style: 'color:var(--muted)' }, 'Balance '), el('b', { style: 'color:' + (s.balance >= 0 ? 'var(--green)' : 'var(--red)') }, fmt(s.balance)));
+    const chev = el('span', { class: 'chevron' }); chev.appendChild(svgChevron());
+    right.append(sharesEl, loansEl, balEl, chev);
+
+    row.appendChild(left); row.appendChild(right);
+    row.addEventListener('click', () => navigate('group', { gid }));
+    list.appendChild(row);
+  }
+  wrap.appendChild(list);
+  return wrap;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MODAL ENGINE
+// ─────────────────────────────────────────────────────────────────────────────
+function openModal(title, bodyNode) {
+  document.getElementById('modal-title').textContent = title;
+  const body = document.getElementById('modal-body');
+  body.innerHTML = '';
+  body.appendChild(bodyNode);
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modal-overlay') && e.type !== 'click') return;
+  document.getElementById('modal-overlay').classList.remove('open');
+  renderPage(); // re-render in place without pushing history
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ADD GROUP MODAL
+// ─────────────────────────────────────────────────────────────────────────────
+function openAddGroupModal() {
+  const body = el('div', { style: 'display:flex;flex-direction:column;gap:14px' });
+
+  const nameF = fieldEl('Group Name', inputEl({ placeholder: 'e.g. Umoja Savings Group' }));
+  const areaF = fieldEl('Area / Location', inputEl({ placeholder: 'e.g. Naivasha, Nakuru' }));
+  const errEl = el('div', { class: 'err', style: 'display:none' });
+
+  const nameInp = nameF.querySelector('input');
+  const areaInp = areaF.querySelector('input');
+
+  const saveBtn = el('button', { class: 'btn btn-primary' }, 'Save Group');
+  saveBtn.addEventListener('click', () => {
+    const name = nameInp.value.trim();
+    const area = areaInp.value.trim();
+    if (!name || !area) { errEl.textContent = 'Both fields are required.'; errEl.style.display = ''; return; }
+    const id = uid();
+    state.groups[id] = { id, name, area };
+    saveState();
+    closeModal();
+    navigate('group', { gid: id });
+  });
+
+  const cancelBtn = el('button', { class: 'btn btn-ghost' }, 'Cancel');
+  cancelBtn.addEventListener('click', closeModal);
+
+  const actions = el('div', { style: 'display:flex;gap:10px;justify-content:flex-end;margin-top:8px' }, cancelBtn, saveBtn);
+  body.append(nameF, areaF, errEl, actions);
+  openModal('Register New Group', body);
+  nameInp.focus();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ADD MEMBER MODAL
+// ─────────────────────────────────────────────────────────────────────────────
+function openAddMemberModal(gid) {
+  const body = el('div', { style: 'display:flex;flex-direction:column;gap:14px' });
+
+  const nameF = fieldEl('Full Name', inputEl({ placeholder: 'Jane Wanjiku' }));
+  const idF   = fieldEl('ID Number', inputEl({ placeholder: '12345678' }));
+  const phF   = fieldEl('Phone Number', inputEl({ placeholder: '0712 345 678' }));
+  const noF   = fieldEl('Member Number', inputEl({ placeholder: 'e.g. 001' }));
+  const errEl = el('div', { class: 'err', style: 'display:none' });
+
+  const [nameInp, idInp, phInp, noInp] = [nameF, idF, phF, noF].map(f => f.querySelector('input'));
+
+  const saveBtn = el('button', { class: 'btn btn-primary' }, 'Add Member');
+  saveBtn.addEventListener('click', () => {
+    const name = nameInp.value.trim();
+    const idNo = idInp.value.trim();
+    const phone = phInp.value.trim();
+    const memberNo = noInp.value.trim();
+    if (!name || !idNo || !phone || !memberNo) { errEl.textContent = 'All fields are required.'; errEl.style.display = ''; return; }
+    if (state.memberships.some(ms => ms.gid === gid && ms.memberNo === memberNo)) { errEl.textContent = 'Member number already used in this group.'; errEl.style.display = ''; return; }
+
+    // Find or create member
+    let mid = Object.values(state.members).find(m => m.idNo === idNo)?.id;
+    if (!mid) { mid = uid(); state.members[mid] = { id: mid, name, idNo, phone }; }
+
+    const msId = uid();
+    state.memberships.push({ id: msId, gid, mid, memberNo, transactions: [] });
+    saveState();
+    closeModal();
+    navigate('group', { gid });
+  });
+
+  const cancelBtn = el('button', { class: 'btn btn-ghost' }, 'Cancel');
+  cancelBtn.addEventListener('click', closeModal);
+
+  const actions = el('div', { style: 'display:flex;gap:10px;justify-content:flex-end;margin-top:8px' }, cancelBtn, saveBtn);
+  body.append(nameF, idF, phF, noF, errEl, actions);
+  openModal('Register Member', body);
+  nameInp.focus();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MEMBER DETAIL MODAL
+// ─────────────────────────────────────────────────────────────────────────────
+const TXN_LABELS = {
+  SD: 'Shares Deposit',    SW: 'Shares Withdrawal',
+  LI: 'Loan Issued',       LP: 'Loan Payment',
+  AI: 'Advance Issued',    AP: 'Advance Payment',
+  LX: 'Loan Interest',     AX: 'Advance Interest',
+  DV: 'Dividend'
+};
+const TXN_NEG = new Set(['SW', 'LI', 'AI']); // LX/AX increase debt — handled separately in display
+
+function openMemberModal(msId) {
+  const ms = state.memberships.find(m => m.id === msId);
+  if (!ms) return;
+  const mem = state.members[ms.mid];
+  if (!mem) return;
+
+  // Open modal first so #modal-body exists in DOM
+  document.getElementById('modal-title').textContent = 'Member Details';
+  document.getElementById('modal-body').innerHTML = '';
+  document.getElementById('modal-overlay').classList.add('open');
+
+  // Render directly into #modal-body — Record will re-render the same node
+  renderMemberModalBody(document.getElementById('modal-body'), msId);
+}
+
+function renderMemberModalBody(container, msId) {
+  container.innerHTML = '';
+  const ms = state.memberships.find(m => m.id === msId);
+  if (!ms) { container.textContent = 'Member not found.'; return; }
+  const mem = state.members[ms.mid];
+  const g   = state.groups[ms.gid];
+  if (!mem) { container.textContent = 'Member not found.'; return; }
+  const c = calcMs(ms);
+
+  // Member info header
+  const infoBox = el('div', { class: 'member-info-box', style: 'background:var(--green-pale);border:1px solid var(--green-border);border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px' });
+  const infoLeft = el('div', {},
+    el('div', { style: 'font-weight:700;font-size:16px' }, mem.name),
+    el('div', { style: 'font-size:12px;color:var(--muted);margin-top:2px' }, (g ? g.name : '?') + ' · #' + ms.memberNo + ' · ID: ' + mem.idNo + ' · ' + mem.phone)
+  );
+  const removeBtn = el('button', { class: 'btn btn-danger btn-sm', style: 'white-space:nowrap;flex-shrink:0' }, 'Remove');
+  removeBtn.addEventListener('click', () => {
+    if (!confirm('Remove ' + mem.name + ' from this group? Their data in other groups will be kept.')) return;
+    state.memberships = state.memberships.filter(m => m.id !== msId);
+    const stillActive = state.memberships.some(m => m.mid === ms.mid);
+    if (!stillActive) delete state.members[ms.mid];
+    saveState();
+    closeModal();
+    renderPage();
+  });
+  infoBox.append(infoLeft, removeBtn);
+  container.appendChild(infoBox);
+
+  // Stats — recalculate fresh each render so Record always shows updated values
+  const sg = el('div', { class: 'stat-grid' },
+    statBox('Total Shares',    fmt(c.shares),  'Max loan: ' + fmt(c.maxLoan)),
+    statBox('Loan Balance',    fmt(c.loan),    c.loan > 0 ? 'Incl. accrued interest' : 'No active loan'),
+    statBox('Advance Balance', fmt(c.adv),     c.adv  > 0 ? 'Incl. accrued interest' : 'No active advance'),
+    statBox('Monthly Interest', fmt(c.loanInt + c.advInt), 'Loan: ' + fmt(c.loanInt) + ' · Adv: ' + fmt(c.advInt))
+  );
+  container.appendChild(sg);
+
+  // ── Section header with tabs ────────────────────────────────────────────────
+  const sectionHead = el('div', { style: 'margin-bottom:14px' },
+    el('div', { style: 'font-weight:700;font-size:14px;margin-bottom:10px' }, 'Record Transaction')
+  );
+
+  // Tab buttons
+  const hasLoan = c.loan > 0;
+  const hasAdv  = c.adv  > 0;
+
+  const tabBar = el('div', { style: 'display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap' });
+  const tabStandard    = el('button', { class: 'btn btn-secondary btn-sm' }, 'Standard Entry');
+  const tabLoanRepay   = el('button', { class: 'btn btn-ghost btn-sm', style: hasLoan ? '' : 'display:none' }, 'Loan Repayment');
+  const tabAdvRepay    = el('button', { class: 'btn btn-ghost btn-sm', style: hasAdv  ? '' : 'display:none' }, 'Advance Repayment');
+  tabBar.append(tabStandard, tabLoanRepay, tabAdvRepay);
+
+  container.appendChild(sectionHead);
+  container.appendChild(tabBar);
+
+  // ── Panel 1: Standard entry ──────────────────────────────────────────────
+  const panelStandard = el('div', {});
+  const txnSel  = selectEl(TXN_LABELS, 'SD');
+  const amtInp  = inputEl({ type: 'number', placeholder: '0.00', style: 'font-size:18px;font-weight:600;padding:10px 12px' });
+  const noteInp = inputEl({ placeholder: 'e.g. June contribution' });
+  const txnErr  = el('div', { class: 'err', style: 'display:none' });
+
+  const recordBtn = el('button', { class: 'btn btn-primary', style: 'width:100%' }, 'Record');
+  recordBtn.addEventListener('click', () => {
+    const freshMs = state.memberships.find(m => m.id === msId);
+    const fc = calcMs(freshMs);
+    const type = txnSel.value;
+    const amount = parseFloat(amtInp.value);
+    if (!amount || amount <= 0) { txnErr.textContent = 'Enter a valid amount.'; txnErr.style.display = ''; return; }
+    if (type === 'LI' && amount > fc.maxLoan) { txnErr.textContent = 'Max loan is ' + fmt(fc.maxLoan) + ' (2.5× shares).'; txnErr.style.display = ''; return; }
+    if (type === 'SW' && amount > fc.shares)  { txnErr.textContent = 'Withdrawal exceeds available shares.'; txnErr.style.display = ''; return; }
+    freshMs.transactions.push({ id: uid(), date: new Date().toISOString(), type, amount, note: noteInp.value.trim() });
+    saveState();
+    closeModal();
+  });
+
+  panelStandard.append(
+    el('div', { style: 'display:flex;flex-direction:column;gap:12px;margin-bottom:24px' },
+      fieldEl('Type', txnSel),
+      fieldEl('Amount (KES)', amtInp),
+      fieldEl('Note (optional)', noteInp),
+      txnErr,
+      recordBtn
+    )
+  );
+
+  // ── Panel 2: Loan repayment waterfall ────────────────────────────────────
+  function makeRepayPanel(debtType) {
+    const isLoan  = debtType === 'loan';
+    const payType = isLoan ? 'LP' : 'AP';
+    const debtBal = isLoan ? c.loan : c.adv;
+    const debtInt = isLoan ? c.loanInt : c.advInt;
+    const label   = isLoan ? 'Loan' : 'Advance';
+
+    const panel = el('div', {});
+
+    // Info strip showing current balance and interest due
+    panel.appendChild(el('div', { style: 'background:#fff8f0;border:1px solid #f0dcc8;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px' },
+      el('div', { style: 'display:flex;justify-content:space-between;margin-bottom:4px' },
+        el('span', { style: 'color:var(--muted)' }, label + ' Balance'),
+        el('b', {}, fmt(debtBal))
+      ),
+      el('div', { style: 'display:flex;justify-content:space-between' },
+        el('span', { style: 'color:var(--muted)' }, 'Interest due this month'),
+        el('b', { style: 'color:var(--orange)' }, fmt(debtInt))
+      )
+    ));
+
+    // Two separate inputs: savings and repayment
+    const savingsInp = inputEl({ type: 'number', placeholder: '0.00', style: 'font-size:16px;font-weight:600;padding:10px 12px' });
+    const repayInp   = inputEl({ type: 'number', placeholder: '0.00', style: 'font-size:16px;font-weight:600;padding:10px 12px' });
+    const noteInp2   = inputEl({ placeholder: 'e.g. March meeting' });
+    const repayErr   = el('div', { class: 'err', style: 'display:none' });
+
+    // Breakdown shown before confirming
+    const breakdown  = el('div', { style: 'display:none;flex-direction:column;gap:6px;background:var(--green-pale);border:1px solid var(--green-border);border-radius:8px;padding:12px 14px;font-size:13px' });
+    const applyBtn   = el('button', { class: 'btn btn-primary', style: 'width:100%;display:none' }, 'Confirm & Apply');
+
+    function bRow(icon, label, amount, color) {
+      return el('div', { style: 'display:flex;justify-content:space-between;align-items:center' },
+        el('span', {}, icon + ' ' + label),
+        el('b', { style: 'color:' + color }, fmt(amount))
+      );
+    }
+
+    function updateBreakdown() {
+      const savings = parseFloat(savingsInp.value) || 0;
+      const repay   = parseFloat(repayInp.value)   || 0;
+
+      breakdown.innerHTML = '';
+      repayErr.style.display = 'none';
+
+      if (savings <= 0 && repay <= 0) {
+        breakdown.style.display = 'none';
+        applyBtn.style.display = 'none';
+        return;
+      }
+
+      // Split repayment: interest first, then principal
+      const intPaid  = parseFloat(Math.min(repay, debtInt).toFixed(2));
+      const prinPaid = parseFloat(Math.min(Math.max(repay - intPaid, 0), debtBal).toFixed(2));
+      const newBal   = parseFloat(Math.max(debtBal - intPaid - prinPaid, 0).toFixed(2));
+
+      if (savings > 0) breakdown.appendChild(bRow('💰', 'Savings deposit', savings, 'var(--green)'));
+      if (intPaid > 0) breakdown.appendChild(bRow('📈', 'Interest payment', intPaid, 'var(--orange)'));
+      if (prinPaid > 0) breakdown.appendChild(bRow('🏦', 'Principal payment', prinPaid, 'var(--green)'));
+
+      // Divider + new balance
+      const divider = el('div', { style: 'border-top:1px solid var(--green-border);margin-top:4px;padding-top:8px;display:flex;justify-content:space-between;font-weight:700' },
+        el('span', {}, 'New ' + label + ' Balance'),
+        el('span', { style: 'color:' + (newBal > 0 ? 'var(--orange)' : 'var(--green)') }, fmt(newBal))
+      );
+      breakdown.appendChild(divider);
+
+      breakdown.style.display = 'flex';
+      applyBtn.style.display = '';
+    }
+
+    savingsInp.addEventListener('input', updateBreakdown);
+    repayInp.addEventListener('input',   updateBreakdown);
+
+    applyBtn.addEventListener('click', () => {
+      const savings = parseFloat(savingsInp.value) || 0;
+      const repay   = parseFloat(repayInp.value)   || 0;
+
+      if (savings <= 0 && repay <= 0) {
+        repayErr.textContent = 'Enter at least a savings or repayment amount.';
+        repayErr.style.display = '';
+        return;
+      }
+
+      const note    = noteInp2.value.trim();
+      const freshMs = state.memberships.find(m => m.id === msId);
+      const fc      = calcMs(freshMs);
+      const curInt  = isLoan ? fc.loanInt : fc.advInt;
+      const curBal  = isLoan ? fc.loan    : fc.adv;
+      const now     = new Date().toISOString();
+      const txns    = [];
+
+      // 1. Savings
+      if (savings > 0) {
+        txns.push({ id: uid(), date: now, type: 'SD', amount: savings,
+          note: (note || 'Savings') + ' — meeting day' });
+      }
+
+      // 2. Interest portion
+      const intPaid  = parseFloat(Math.min(repay, curInt).toFixed(2));
+      const prinPaid = parseFloat(Math.min(Math.max(repay - intPaid, 0), curBal).toFixed(2));
+
+      if (intPaid > 0) {
+        txns.push({ id: uid(), date: now, type: payType, amount: intPaid,
+          note: (note || 'Repayment') + ' — interest portion' });
+      }
+
+      // 3. Principal portion
+      if (prinPaid > 0) {
+        txns.push({ id: uid(), date: now, type: payType, amount: prinPaid,
+          note: (note || 'Repayment') + ' — principal portion' });
+      }
+
+      for (const t of txns) freshMs.transactions.push(t);
+      saveState();
+      closeModal();
+    });
+
+    panel.append(
+      el('div', { style: 'display:flex;flex-direction:column;gap:12px;margin-bottom:24px' },
+        fieldEl('Savings Amount (KES)', savingsInp),
+        fieldEl('Repayment Amount (KES)', repayInp),
+        breakdown,
+        fieldEl('Note (optional)', noteInp2),
+        repayErr,
+        applyBtn
+      )
+    );
+    return panel;
+  }
+
+  const panelLoan = makeRepayPanel('loan');
+  const panelAdv  = makeRepayPanel('advance');
+
+  // ── Tab switching ─────────────────────────────────────────────────────────
+  const allTabs   = [tabStandard, tabLoanRepay, tabAdvRepay];
+  const allPanels = [panelStandard, panelLoan, panelAdv];
+
+  function switchTab(idx) {
+    allTabs.forEach((t, i) => {
+      t.className = i === idx ? 'btn btn-secondary btn-sm' : 'btn btn-ghost btn-sm';
+      if (i === 1 && !hasLoan) t.style.display = 'none';
+      if (i === 2 && !hasAdv)  t.style.display = 'none';
+    });
+    allPanels.forEach((p, i) => p.style.display = i === idx ? '' : 'none');
+  }
+
+  tabStandard.addEventListener('click',  () => switchTab(0));
+  tabLoanRepay.addEventListener('click', () => switchTab(1));
+  tabAdvRepay.addEventListener('click',  () => switchTab(2));
+
+  // Show panels
+  allPanels.forEach(p => container.appendChild(p));
+  // Default: show repayment tab if there's a loan, otherwise standard
+  switchTab(hasLoan ? 1 : (hasAdv ? 2 : 0));
+
+  // Transaction history
+  const txns = ms.transactions;
+  if (txns.length > 0) {
+    container.appendChild(el('div', { style: 'font-weight:700;font-size:14px;margin-bottom:10px' }, 'Transaction History'));
+    const list = el('div', { class: 'scroll-list' });
+
+    for (const t of [...txns].reverse()) {
+      const neg = TXN_NEG.has(t.type);
+      const tid = t.id;
+
+      const row = el('div', { class: 'txn-row' });
+      const info = el('div', { style: 'flex:1' },
+        el('div', { class: 'txn-type' }, TXN_LABELS[t.type]),
+        el('div', { class: 'txn-date' }, fmtDate(t.date) + (t.note ? ' · ' + t.note : ''))
+      );
+      // Interest txns increase debt: show as + in orange to distinguish from income
+      const isInt = t.type === 'LX' || t.type === 'AX';
+      const amtClass = neg ? 'txn-neg' : (isInt ? '' : 'txn-pos');
+      const amtColor = isInt ? 'color:var(--orange)' : '';
+      const amtEl = el('span', { class: 'txn-amount ' + amtClass, style: amtColor },
+        (neg ? '−' : '+') + fmt(t.amount).replace('KES ', '')
+      );
+      const del = makeTrashBtn('Delete transaction', () => {
+        if (!confirm('Delete this transaction? This will affect the member\'s balances.')) return;
+        const target = state.memberships.find(m => m.id === msId);
+        target.transactions = target.transactions.filter(x => x.id !== tid);
+        saveState();
+        renderMemberModalBody(document.getElementById('modal-body'), msId);
+      });
+
+      const rightSide = el('div', { style: 'display:flex;align-items:center;gap:8px' }, amtEl, del);
+      row.append(info, rightSide);
+      list.appendChild(row);
+    }
+    container.appendChild(list);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DELETE ACTIONS
+// ─────────────────────────────────────────────────────────────────────────────
+function confirmDeleteGroup(gid) {
+  const g = state.groups[gid];
+  if (!g) return;
+  if (!confirm('Delete group "' + g.name + '" and all its member data?\n\nThis cannot be undone.')) return;
+
+  const mids = state.memberships.filter(ms => ms.gid === gid).map(ms => ms.mid);
+  state.memberships = state.memberships.filter(ms => ms.gid !== gid);
+  const orphans = mids.filter(mid => !state.memberships.some(ms => ms.mid === mid));
+  for (const mid of orphans) delete state.members[mid];
+  delete state.groups[gid];
+  saveState();
+  navigate('groups');
+}
+
+function confirmDeleteMembership(msId) {
+  const ms = state.memberships.find(m => m.id === msId);
+  if (!ms) return;
+  const mem = state.members[ms.mid];
+  const name = mem ? mem.name : 'this member';
+  if (!confirm('Remove ' + name + ' from this group?\n\nTheir data in other groups will be kept.')) return;
+
+  const gid = ms.gid;
+  const mid = ms.mid;
+  state.memberships = state.memberships.filter(m => m.id !== msId);
+  const stillActive = state.memberships.some(m => m.mid === mid);
+  if (!stillActive) delete state.members[mid];
+  saveState();
+  navigate('group', { gid });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PWA: SERVICE WORKER + INSTALL
+// ─────────────────────────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+let deferredInstall = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstall = e;
+  const banner = document.getElementById('install-banner');
+  banner.classList.add('show');
+});
+
+document.getElementById('install-yes').addEventListener('click', async () => {
+  if (!deferredInstall) return;
+  deferredInstall.prompt();
+  await deferredInstall.userChoice;
+  deferredInstall = null;
+  document.getElementById('install-banner').classList.remove('show');
+});
+
+document.getElementById('install-no').addEventListener('click', () => {
+  document.getElementById('install-banner').classList.remove('show');
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('install-banner').classList.remove('show');
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// DIVIDEND MODAL
+// ─────────────────────────────────────────────────────────────────────────────
+function openDividendModal(gid) {
+  const g = state.groups[gid];
+  const currentYear = new Date().getFullYear();
+  const years = [];
+  // Collect all years that have interest transactions
+  for (const ms of state.memberships.filter(m => m.gid === gid)) {
+    for (const t of ms.transactions) {
+      if (t.type === 'LX' || t.type === 'AX') {
+        const y = new Date(t.date).getFullYear();
+        if (!years.includes(y)) years.push(y);
+      }
+    }
+  }
+  if (!years.includes(currentYear)) years.push(currentYear);
+  years.sort((a, b) => b - a);
+
+  const body = el('div', { style: 'display:flex;flex-direction:column;gap:16px' });
+
+  // Year selector
+  const yearSel = selectEl(Object.fromEntries(years.map(y => [y, y + ' Dividends'])), String(currentYear));
+  body.appendChild(fieldEl('Year', yearSel));
+
+  // Dividend preview table
+  const preview = el('div', {});
+  body.appendChild(preview);
+
+  function renderDividendPreview() {
+    preview.innerHTML = '';
+    const year = parseInt(yearSel.value);
+    const pool = groupInterestCollected(gid, year);
+    const members = state.memberships
+      .filter(ms => ms.gid === gid)
+      .sort((a, b) => {
+        const na = isNaN(a.memberNo) ? a.memberNo : Number(a.memberNo);
+        const nb = isNaN(b.memberNo) ? b.memberNo : Number(b.memberNo);
+        return typeof na === 'number' && typeof nb === 'number' ? na - nb : String(na).localeCompare(String(nb));
+      });
+
+    // Pool summary
+    preview.appendChild(el('div', { style: 'background:#fff8f0;border:1px solid #f0dcc8;border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px' },
+      el('div', { style: 'display:flex;justify-content:space-between;margin-bottom:4px' },
+        el('span', { style: 'color:var(--muted)' }, 'Total interest collected in ' + year),
+        el('b', { style: 'color:var(--orange)' }, fmt(pool))
+      ),
+      el('div', { style: 'display:flex;justify-content:space-between' },
+        el('span', { style: 'color:var(--muted)' }, 'To be distributed to ' + members.length + ' members')
+      )
+    ));
+
+    if (pool <= 0) {
+      preview.appendChild(el('div', { style: 'color:var(--muted);font-size:13px;text-align:center;padding:16px' },
+        'No interest collected in ' + year + '. No dividends to distribute.'));
+      return;
+    }
+
+    // Per-member dividend table
+    const table = el('div', { style: 'display:flex;flex-direction:column;gap:8px;margin-bottom:16px' });
+    const memberDivs = members.map(ms => {
+      const mem = state.members[ms.mid];
+      const div = calcMemberDividend(ms.id, gid, year);
+      return { ms, mem, div };
+    });
+
+    for (const { ms, mem, div } of memberDivs) {
+      if (!mem) continue;
+      // Check if dividend already paid this year
+      const alreadyPaid = ms.transactions.some(t =>
+        t.type === 'DV' && new Date(t.date).getFullYear() === year
+      );
+      const row = el('div', { style: 'background:var(--white);border:1.5px solid ' + (alreadyPaid ? 'var(--green-border)' : 'var(--border)') + ';border-radius:8px;padding:12px 14px' });
+      const top = el('div', { style: 'display:flex;justify-content:space-between;align-items:center' },
+        el('div', {},
+          el('div', { style: 'font-weight:600' }, mem.name),
+          el('div', { style: 'font-size:12px;color:var(--muted)' }, '#' + ms.memberNo)
+        ),
+        el('div', { style: 'text-align:right' },
+          el('div', { style: 'font-weight:700;font-size:16px;color:var(--green)' }, fmt(div)),
+          alreadyPaid
+            ? el('div', { style: 'font-size:11px;color:var(--green);font-weight:600' }, '✓ Already paid')
+            : el('div', { style: 'font-size:11px;color:var(--muted)' }, 'Not yet paid')
+        )
+      );
+      row.appendChild(top);
+
+      if (!alreadyPaid && div > 0) {
+        const btnRow = el('div', { style: 'display:flex;gap:8px;margin-top:10px' });
+        const btnShares = el('button', { class: 'btn btn-secondary btn-sm' }, 'Add to Shares');
+        const btnCash   = el('button', { class: 'btn btn-ghost btn-sm' }, 'Cash Payout');
+
+        const applyDiv = (addToShares) => {
+          const freshMs = state.memberships.find(m => m.id === ms.id);
+          freshMs.transactions.push({
+            id: uid(),
+            date: new Date(year, 11, 31).toISOString(),
+            type: 'DV',
+            amount: addToShares ? div : 0,
+            note: year + ' dividend — ' + fmt(div) + (addToShares ? ' added to shares' : ' paid as cash')
+          });
+          // If cash, record as shares withdrawal so balance stays correct
+          if (!addToShares) {
+            freshMs.transactions.push({
+              id: uid(),
+              date: new Date(year, 11, 31).toISOString(),
+              type: 'SW',
+              amount: 0,
+              note: year + ' dividend cash payout — ' + fmt(div)
+            });
+          }
+          saveState();
+          renderDividendPreview();
+          renderPage();
+        };
+
+        btnShares.addEventListener('click', () => applyDiv(true));
+        btnCash.addEventListener('click',   () => applyDiv(false));
+        btnRow.append(btnShares, btnCash);
+        row.appendChild(btnRow);
+      }
+      table.appendChild(row);
+    }
+    preview.appendChild(table);
+
+    // Pay all button
+    const allPaid = memberDivs.every(({ ms, div }) =>
+      div <= 0 || ms.transactions.some(t => t.type === 'DV' && new Date(t.date).getFullYear() === parseInt(yearSel.value))
+    );
+    if (!allPaid) {
+      const payAllRow = el('div', { class: 'div-pay-all-row', style: 'display:flex;gap:8px' });
+      const payAllShares = el('button', { class: 'btn btn-primary', style: 'flex:1' }, 'Add All to Shares');
+      const payAllCash   = el('button', { class: 'btn btn-secondary', style: 'flex:1' }, 'All as Cash');
+      payAllShares.addEventListener('click', () => {
+        const yr = parseInt(yearSel.value);
+        for (const { ms, div } of memberDivs) {
+          if (div <= 0) continue;
+          if (ms.transactions.some(t => t.type === 'DV' && new Date(t.date).getFullYear() === yr)) continue;
+          const freshMs = state.memberships.find(m => m.id === ms.id);
+          freshMs.transactions.push({ id: uid(), date: new Date(yr, 11, 31).toISOString(),
+            type: 'DV', amount: div, note: yr + ' dividend — ' + fmt(div) + ' added to shares' });
+        }
+        saveState(); renderDividendPreview(); renderPage();
+      });
+      payAllCash.addEventListener('click', () => {
+        const yr = parseInt(yearSel.value);
+        for (const { ms, div } of memberDivs) {
+          if (div <= 0) continue;
+          if (ms.transactions.some(t => t.type === 'DV' && new Date(t.date).getFullYear() === yr)) continue;
+          const freshMs = state.memberships.find(m => m.id === ms.id);
+          freshMs.transactions.push({ id: uid(), date: new Date(yr, 11, 31).toISOString(),
+            type: 'DV', amount: 0, note: yr + ' dividend — ' + fmt(div) + ' paid as cash' });
+        }
+        saveState(); renderDividendPreview(); renderPage();
+      });
+      payAllRow.append(payAllShares, payAllCash);
+      preview.appendChild(payAllRow);
+    }
+  }
+
+  yearSel.addEventListener('change', renderDividendPreview);
+  renderDividendPreview();
+
+  openModal('Dividends — ' + g.name, body);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SWIPE-BACK GESTURE
+// Right-swipe navigates back in pure JS.
+// Sets a flag so the popstate that the native browser also fires for the same
+// gesture doesn't call doGoBack() a second time (which would skip a page).
+// ─────────────────────────────────────────────────────────────────────────────
+(function () {
+  let startX = 0, startY = 0, tracking = false;
+  let _swipeJustFired = false;
+
+  document.addEventListener('touchstart', (e) => {
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    tracking = startX < window.innerWidth * 0.35;
+  }, { passive: true });
+
+  document.addEventListener('touchend', (e) => {
+    if (!tracking) return;
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    if (dx > 70 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+      _swipeJustFired = true;
+      setTimeout(() => { _swipeJustFired = false; }, 400);
+      doGoBack();
+    }
+    tracking = false;
+  }, { passive: true });
+
+  // Hardware / Android back button — handled via popstate.
+  // Skip if we already handled it in touchend to avoid navigating back twice.
+  // Always re-pushes a guard entry so the browser stack never empties.
+  window.addEventListener('popstate', () => {
+    if (_swipeJustFired) {
+      // Swipe touchend already called doGoBack() — just restore the guard entry
+      _swipeJustFired = false;
+      history.pushState({ tbNav: true }, '');
+      return;
+    }
+    doGoBack();
+    history.pushState({ tbNav: true }, '');
+  });
+})();
+
+applyMonthlyInterest();
+// Seed two entries: base (replaceState) + guard (pushState).
+// This means the hardware back button always fires popstate before hitting
+// the true bottom of the stack and exiting the app.
+history.replaceState({ tbNav: true }, '');
+history.pushState({ tbNav: true }, '');
+navigate('groups');
+</script>
+</body>
+</html>
