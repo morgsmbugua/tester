@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- BUILD: 20260305220000 -->
+  <!-- BUILD: 20260306220000 -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Table Bank</title>
   <meta name="description" content="Groups' Table Banking Finance Manager" />
   <meta name="theme-color" content="#2d6a4f" />
   <link rel="manifest" href="manifest.json" />
-  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
+  <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png" />
+  <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
 
   <style>
@@ -21,6 +24,7 @@
       --green-border: #e8f0ec;
       --red: #c0392b;
       --orange: #e67e22;
+      --blue: #1a6eb0;
       --purple: #8e44ad;
       --bg: #f5f5f0;
       --white: #ffffff;
@@ -259,6 +263,33 @@
     #install-yes { background: #fff; color: var(--green); border: none; border-radius: 6px; padding: 6px 14px; font-weight: 700; cursor: pointer; font-size: 13px; font-family: inherit; }
     #install-no  { background: none; border: none; color: #b7e4c7; cursor: pointer; font-size: 20px; line-height: 1; }
 
+    /* Meeting date banner */
+    .meeting-banner { margin-bottom: 20px; }
+    .meeting-banner-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 18px;
+      border-radius: 10px;
+      border: 1.5px solid var(--green-border);
+      background: var(--green-pale);
+    }
+    .meeting-banner-inner.meeting-soon {
+      background: #fff8f0;
+      border-color: #f0dcc8;
+    }
+    .meeting-banner-inner.meeting-unset {
+      background: #fafafa;
+      border-color: var(--border);
+      border-style: dashed;
+    }
+    .meeting-banner-left { flex: 1; min-width: 0; }
+    .meeting-banner-label { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+    .meeting-banner-date  { font-size: 15px; font-weight: 700; color: var(--text); }
+    .meeting-banner-sub   { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .meeting-banner-inner.meeting-soon .meeting-banner-sub { color: var(--orange); font-weight: 600; }
+
     /* Daily Activity table */
     .daily-act-header,
     .daily-act-row {
@@ -329,6 +360,8 @@
     .msp-green  { color: var(--green); }
     .msp-orange { color: var(--orange); }
     .msp-purple { color: var(--purple); }
+    .msp-blue   { color: var(--blue); }
+    .msp-neg    { color: var(--red); }
     .scroll-list { max-height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
     .scroll-list::-webkit-scrollbar { width: 4px; }
     .scroll-list::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
@@ -523,6 +556,10 @@ function calcMs(ms) {
     if (t.type === 'AP') adv    -= t.amount;
     if (t.type === 'AX') adv    += t.amount; // advance interest added to balance
     if (t.type === 'DV') shares += t.amount; // dividend added to shares (if chosen)
+    // Opening balance types — used when transferring existing group data
+    if (t.type === 'OB_S') shares += t.amount;
+    if (t.type === 'OB_L') loan   += t.amount;
+    if (t.type === 'OB_A') adv    += t.amount;
   }
   const loanInt = loan > 0 ? loan * LOAN_INT : 0;
   const advInt  = adv  > 0 ? adv  * ADV_INT  : 0;
@@ -581,74 +618,83 @@ function calcMemberDividend(msId, gid, year) {
 // then inserts one LX/AX transaction per missed month at the balance that
 // existed at the START of that month.
 // ─────────────────────────────────────────────────────────────────────────────
+// ── Interest: meeting-date-based ─────────────────────────────────────────────
+// Interest fires on the meeting day itself, dated to 06:00 that morning.
+// Opening the app on meeting day → balances already correct before the meeting.
+// Opening late → catches up automatically on next open.
+// After firing, nextMeeting is cleared so the treasurer sets the next one.
 function applyMonthlyInterest() {
-  const now = new Date();
-  // Work in UTC-like month arithmetic: year*12 + month index
-  const toMonthIdx = d => d.getFullYear() * 12 + d.getMonth();
-  const nowIdx = toMonthIdx(now);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   let changed = false;
 
-  for (const ms of state.memberships) {
-    // Process loan interest
-    changed = accrueInterest(ms, 'LI', 'LP', 'LX', LOAN_INT, nowIdx, toMonthIdx) || changed;
-    // Process advance interest
-    changed = accrueInterest(ms, 'AI', 'AP', 'AX', ADV_INT,  nowIdx, toMonthIdx) || changed;
+  for (const gid of Object.keys(state.groups)) {
+    const g = state.groups[gid];
+    if (!g.nextMeeting) continue;
+
+    const meetingDate = new Date(g.nextMeeting);
+    meetingDate.setHours(0, 0, 0, 0);
+
+    // Fire on meeting day or any day after (catch-up if app was opened late)
+    if (today < meetingDate) continue;
+
+    // Timestamp interest at 06:00 on meeting day — before the meeting starts
+    const interestDate = new Date(g.nextMeeting);
+    interestDate.setHours(6, 0, 0, 0);
+    const interestDateISO = interestDate.toISOString();
+
+    for (const ms of state.memberships.filter(m => m.gid === gid)) {
+      changed = accrueInterestOnce(ms, 'LI', 'LP', 'LX', LOAN_INT, interestDateISO) || changed;
+      changed = accrueInterestOnce(ms, 'AI', 'AP', 'AX', ADV_INT,  interestDateISO) || changed;
+    }
+
+    // Clear meeting date — treasurer must set the next one
+    g.nextMeeting = null;
+    changed = true;
   }
 
   if (changed) {
     saveState();
-    console.log('[TableBank] Monthly interest applied and saved.');
+    console.log('[TableBank] Meeting interest applied.');
   }
 }
 
-function accrueInterest(ms, issueType, payType, intType, rate, nowIdx, toMonthIdx) {
-  // Find first issue transaction
-  const firstIssue = ms.transactions.find(t => t.type === issueType);
+// Applies exactly one interest charge for a membership if there is an active
+// balance and no interest has already been charged on or after lastIntDate.
+function accrueInterestOnce(ms, issueType, payType, intType, rate, dateISO) {
+  // Accept opening balance entries as valid triggers
+  const openingType = issueType === 'LI' ? 'OB_L' : (issueType === 'AI' ? 'OB_A' : null);
+  const firstIssue = ms.transactions.find(t => t.type === issueType || (openingType && t.type === openingType));
   if (!firstIssue) return false;
 
-  // Find the last interest transaction already applied
-  const lastInt = [...ms.transactions].reverse().find(t => t.type === intType);
-
-  // The month AFTER the last interest applied, or the month AFTER issuance
-  const startDate = lastInt ? new Date(lastInt.date) : new Date(firstIssue.date);
-  let startIdx = toMonthIdx(startDate) + 1; // next month after last event
-
-  if (startIdx > nowIdx) return false; // nothing due yet
-
-  let madeChange = false;
-
-  // Apply one transaction per due month
-  for (let mIdx = startIdx; mIdx <= nowIdx; mIdx++) {
-    // Compute the balance at the START of this month by replaying all
-    // transactions strictly before this month
-    let bal = 0;
-    for (const t of ms.transactions) {
-      if (toMonthIdx(new Date(t.date)) < mIdx) {
-        if (t.type === issueType) bal += t.amount;
-        if (t.type === payType)   bal -= t.amount;
-        if (t.type === intType)   bal += t.amount;
-      }
-    }
-    if (bal <= 0) continue; // loan fully paid by this point
-
-    const interest = parseFloat((bal * rate).toFixed(2));
-    if (interest <= 0) continue;
-
-    // Date stamp: 1st day of that month
-    const year  = Math.floor(mIdx / 12);
-    const month = mIdx % 12;
-    const intDate = new Date(year, month, 1).toISOString();
-
-    ms.transactions.push({
-      id: uid(),
-      date: intDate,
-      type: intType,
-      amount: interest,
-      note: 'Auto interest (' + (rate * 100) + '%/mo on ' + fmt(bal) + ')'
-    });
-    madeChange = true;
+  // Compute current balance (including opening balance entries)
+  let bal = 0;
+  for (const t of ms.transactions) {
+    if (t.type === issueType || (openingType && t.type === openingType)) bal += t.amount;
+    if (t.type === payType)   bal -= t.amount;
+    if (t.type === intType)   bal += t.amount;
   }
-  return madeChange;
+  if (bal <= 0) return false;
+
+  // Don't double-charge: skip if interest was already applied for this date
+  const alreadyCharged = ms.transactions.some(t =>
+    t.type === intType && t.date.slice(0, 10) === dateISO.slice(0, 10)
+  );
+  if (alreadyCharged) return false;
+
+  const interest = parseFloat((bal * rate).toFixed(2));
+  if (interest <= 0) return false;
+
+  const d = new Date(dateISO);
+  const label = d.toLocaleDateString('en-KE', { day: 'numeric', month: 'long', year: 'numeric' });
+  ms.transactions.push({
+    id: uid(),
+    date: dateISO,
+    type: intType,
+    amount: interest,
+    note: 'Meeting interest ' + label + ' (' + (rate * 100) + '%/mo on ' + fmt(bal) + ')'
+  });
+  return true;
 }
 
 function groupStats(gid) {
@@ -880,7 +926,8 @@ function renderGroupsPage() {
     const topLine = el('div', { style: 'display:flex;align-items:center;justify-content:space-between;gap:8px' });
     const info = el('div', { style: 'flex:1;min-width:0' },
       el('div', { class: 'row-name' }, g.name),
-      el('div', { class: 'row-meta' }, g.area + ' · ' + s.count + ' member' + (s.count !== 1 ? 's' : ''))
+      el('div', { class: 'row-meta' }, g.area + ' · ' + s.count + ' member' + (s.count !== 1 ? 's' : '') +
+        (g.nextMeeting ? ' · 📅 ' + new Date(g.nextMeeting).toLocaleDateString('en-KE', { day: 'numeric', month: 'short' }) : ''))
     );
     const trashBtn = makeTrashBtn('Delete group', () => confirmDeleteGroup(gid));
     const chevron = el('span', { class: 'chevron' }); chevron.appendChild(svgChevron());
@@ -902,7 +949,7 @@ function renderGroupsPage() {
     ));
     strip.appendChild(el('div', { class: 'member-stat-pill' },
       el('span', { class: 'msp-label' }, 'Balance'),
-      el('span', { class: 'msp-value', style: 'color:' + (s.balance >= 0 ? 'var(--green)' : 'var(--red)') }, fmt(s.balance))
+      el('span', { class: 'msp-value ' + (s.balance >= 0 ? 'msp-blue' : 'msp-neg') }, fmt(s.balance))
     ));
 
     row.append(topLine, strip);
@@ -963,6 +1010,43 @@ function renderGroupPage(gid) {
     statBox('Group Balance', fmt(s.balance))
   );
   wrap.appendChild(sg);
+
+  // ── Next Meeting banner ──
+  const meetingBanner = el('div', { class: 'meeting-banner' });
+  function renderMeetingBanner() {
+    meetingBanner.innerHTML = '';
+    const nm = state.groups[gid].nextMeeting;
+    if (nm) {
+      const d = new Date(nm);
+      const label = d.toLocaleDateString('en-KE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+      const today = new Date(); today.setHours(0,0,0,0);
+      const trigger = new Date(d); trigger.setDate(trigger.getDate() - 1);
+      const daysLeft = Math.ceil((trigger - today) / 86400000);
+      const soon = daysLeft <= 1;
+      meetingBanner.appendChild(el('div', { class: 'meeting-banner-inner' + (soon ? ' meeting-soon' : '') },
+        el('div', { class: 'meeting-banner-left' },
+          el('div', { class: 'meeting-banner-label' }, '📅 Next Meeting'),
+          el('div', { class: 'meeting-banner-date' }, label),
+          el('div', { class: 'meeting-banner-sub' }, soon
+            ? (daysLeft <= 0 ? '⚡ Interest will apply when you open the app today' : '⚡ Interest applies tomorrow when you open the app')
+            : 'Interest applies automatically when you open the app on meeting day'
+          )
+        ),
+        el('button', { class: 'btn btn-secondary btn-sm', onclick: () => openSetMeetingModal(gid) }, 'Change')
+      ));
+    } else {
+      meetingBanner.appendChild(el('div', { class: 'meeting-banner-inner meeting-unset' },
+        el('div', { class: 'meeting-banner-left' },
+          el('div', { class: 'meeting-banner-label' }, '📅 Next Meeting'),
+          el('div', { class: 'meeting-banner-date', style: 'color:var(--muted)' }, 'Not set'),
+          el('div', { class: 'meeting-banner-sub' }, 'Set a date so interest is charged automatically')
+        ),
+        el('button', { class: 'btn btn-primary btn-sm', onclick: () => openSetMeetingModal(gid) }, 'Set Date')
+      ));
+    }
+  }
+  renderMeetingBanner();
+  wrap.appendChild(meetingBanner);
 
   // Members section title
   wrap.appendChild(el('div', { style: 'font-weight:700;font-size:15px;margin-bottom:12px' }, 'Members'));
@@ -1204,6 +1288,9 @@ function openModal(title, bodyNode) {
   body.innerHTML = '';
   body.appendChild(bodyNode);
   document.getElementById('modal-overlay').classList.add('open');
+  // Give the modal its own history entry so swipe-back closes it
+  // without also consuming the underlying page's entry
+  history.pushState({ tbNav: true, modal: true }, '');
 }
 
 function closeModal(e) {
@@ -1218,12 +1305,14 @@ function closeModal(e) {
 function openAddGroupModal() {
   const body = el('div', { style: 'display:flex;flex-direction:column;gap:14px' });
 
-  const nameF = fieldEl('Group Name', inputEl({ placeholder: 'e.g. Umoja Savings Group' }));
-  const areaF = fieldEl('Area / Location', inputEl({ placeholder: 'e.g. Naivasha, Nakuru' }));
-  const errEl = el('div', { class: 'err', style: 'display:none' });
+  const nameF    = fieldEl('Group Name', inputEl({ placeholder: 'e.g. Umoja Savings Group' }));
+  const areaF    = fieldEl('Area / Location', inputEl({ placeholder: 'e.g. Naivasha, Nakuru' }));
+  const meetingF = fieldEl('First Meeting Date', inputEl({ type: 'date' }));
+  const errEl    = el('div', { class: 'err', style: 'display:none' });
 
-  const nameInp = nameF.querySelector('input');
-  const areaInp = areaF.querySelector('input');
+  const nameInp    = nameF.querySelector('input');
+  const areaInp    = areaF.querySelector('input');
+  const meetingInp = meetingF.querySelector('input');
 
   const saveBtn = el('button', { class: 'btn btn-primary' }, 'Save Group');
   saveBtn.addEventListener('click', () => {
@@ -1231,7 +1320,7 @@ function openAddGroupModal() {
     const area = areaInp.value.trim();
     if (!name || !area) { errEl.textContent = 'Both fields are required.'; errEl.style.display = ''; return; }
     const id = uid();
-    state.groups[id] = { id, name, area };
+    state.groups[id] = { id, name, area, nextMeeting: meetingInp.value || null };
     saveState();
     closeModal();
     navigate('group', { gid: id });
@@ -1241,7 +1330,7 @@ function openAddGroupModal() {
   cancelBtn.addEventListener('click', closeModal);
 
   const actions = el('div', { style: 'display:flex;gap:10px;justify-content:flex-end;margin-top:8px' }, cancelBtn, saveBtn);
-  body.append(nameF, areaF, errEl, actions);
+  body.append(nameF, areaF, meetingF, errEl, actions);
   openModal('Register New Group', body);
   nameInp.focus();
 }
@@ -1252,29 +1341,76 @@ function openAddGroupModal() {
 function openAddMemberModal(gid) {
   const body = el('div', { style: 'display:flex;flex-direction:column;gap:14px' });
 
+  // ── Member details ──
   const nameF = fieldEl('Full Name', inputEl({ placeholder: 'Jane Wanjiku' }));
   const idF   = fieldEl('ID Number', inputEl({ placeholder: '12345678' }));
   const phF   = fieldEl('Phone Number', inputEl({ placeholder: '0712 345 678' }));
   const noF   = fieldEl('Member Number', inputEl({ placeholder: 'e.g. 001' }));
-  const errEl = el('div', { class: 'err', style: 'display:none' });
-
   const [nameInp, idInp, phInp, noInp] = [nameF, idF, phF, noF].map(f => f.querySelector('input'));
+
+  // ── Opening balances toggle ──
+  const toggleRow = el('div', { style: 'display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--green-pale);border:1px solid var(--green-border);border-radius:8px;cursor:pointer' });
+  const toggleCheck = el('input', { type: 'checkbox', id: 'ob-toggle', style: 'width:16px;height:16px;accent-color:var(--green);cursor:pointer;flex-shrink:0' });
+  const toggleLabel = el('label', { for: 'ob-toggle', style: 'font-size:13px;font-weight:600;cursor:pointer;flex:1' }, 'Transferring existing data?');
+  const toggleSub = el('div', { style: 'font-size:11px;color:var(--muted);margin-top:2px' }, 'Fill in current balances — interest will apply at the next meeting');
+  const toggleText = el('div', { style: 'flex:1' });
+  toggleText.appendChild(toggleLabel);
+  toggleText.appendChild(toggleSub);
+  toggleRow.append(toggleCheck, toggleText);
+
+  // ── Opening balance fields (hidden by default) ──
+  const obSection = el('div', { style: 'display:none;flex-direction:column;gap:12px;padding:14px;background:#fafafa;border:1.5px solid var(--border);border-radius:8px' });
+
+  obSection.appendChild(el('div', { style: 'font-size:12px;color:var(--muted);line-height:1.6' },
+    'Enter the member\'s current balances as they stand today. Leave blank if zero.'
+  ));
+
+  const obSharesF = fieldEl('Current Shares Balance (KES)', inputEl({ type: 'number', placeholder: '0.00' }));
+  const obLoanF   = fieldEl('Current Loan Balance (KES)',   inputEl({ type: 'number', placeholder: '0.00' }));
+  const obAdvF    = fieldEl('Current Advance Balance (KES)',inputEl({ type: 'number', placeholder: '0.00' }));
+  obSection.append(obSharesF, obLoanF, obAdvF);
+
+  toggleCheck.addEventListener('change', () => {
+    obSection.style.display = toggleCheck.checked ? 'flex' : 'none';
+  });
+  toggleRow.addEventListener('click', (e) => {
+    if (e.target !== toggleCheck) toggleCheck.click();
+  });
+
+  const errEl = el('div', { class: 'err', style: 'display:none' });
 
   const saveBtn = el('button', { class: 'btn btn-primary' }, 'Add Member');
   saveBtn.addEventListener('click', () => {
-    const name = nameInp.value.trim();
-    const idNo = idInp.value.trim();
-    const phone = phInp.value.trim();
+    const name     = nameInp.value.trim();
+    const idNo     = idInp.value.trim();
+    const phone    = phInp.value.trim();
     const memberNo = noInp.value.trim();
-    if (!name || !idNo || !phone || !memberNo) { errEl.textContent = 'All fields are required.'; errEl.style.display = ''; return; }
-    if (state.memberships.some(ms => ms.gid === gid && ms.memberNo === memberNo)) { errEl.textContent = 'Member number already used in this group.'; errEl.style.display = ''; return; }
+    if (!name || !idNo || !phone || !memberNo) {
+      errEl.textContent = 'All member details are required.'; errEl.style.display = ''; return;
+    }
+    if (state.memberships.some(ms => ms.gid === gid && ms.memberNo === memberNo)) {
+      errEl.textContent = 'Member number already used in this group.'; errEl.style.display = ''; return;
+    }
 
-    // Find or create member
+    // Find or create member record
     let mid = Object.values(state.members).find(m => m.idNo === idNo)?.id;
     if (!mid) { mid = uid(); state.members[mid] = { id: mid, name, idNo, phone }; }
 
     const msId = uid();
-    state.memberships.push({ id: msId, gid, mid, memberNo, transactions: [] });
+    const transactions = [];
+    const now = new Date().toISOString();
+
+    if (toggleCheck.checked) {
+      const obShares = parseFloat(obSharesF.querySelector('input').value) || 0;
+      const obLoan   = parseFloat(obLoanF.querySelector('input').value)   || 0;
+      const obAdv    = parseFloat(obAdvF.querySelector('input').value)    || 0;
+
+      if (obShares > 0) transactions.push({ id: uid(), date: now, type: 'OB_S', amount: obShares, note: 'Opening balance' });
+      if (obLoan   > 0) transactions.push({ id: uid(), date: now, type: 'OB_L', amount: obLoan,   note: 'Opening balance' });
+      if (obAdv    > 0) transactions.push({ id: uid(), date: now, type: 'OB_A', amount: obAdv,    note: 'Opening balance' });
+    }
+
+    state.memberships.push({ id: msId, gid, mid, memberNo, transactions });
     saveState();
     closeModal();
     navigate('group', { gid });
@@ -1283,8 +1419,8 @@ function openAddMemberModal(gid) {
   const cancelBtn = el('button', { class: 'btn btn-ghost' }, 'Cancel');
   cancelBtn.addEventListener('click', closeModal);
 
-  const actions = el('div', { style: 'display:flex;gap:10px;justify-content:flex-end;margin-top:8px' }, cancelBtn, saveBtn);
-  body.append(nameF, idF, phF, noF, errEl, actions);
+  const actions = el('div', { style: 'display:flex;gap:10px;justify-content:flex-end;margin-top:4px' }, cancelBtn, saveBtn);
+  body.append(nameF, idF, phF, noF, toggleRow, obSection, errEl, actions);
   openModal('Register Member', body);
   nameInp.focus();
 }
@@ -1297,9 +1433,12 @@ const TXN_LABELS = {
   LI: 'Loan Issued',       LP: 'Loan Payment',
   AI: 'Advance Issued',    AP: 'Advance Payment',
   LX: 'Loan Interest',     AX: 'Advance Interest',
-  DV: 'Dividend'
+  DV: 'Dividend',
+  OB_S: 'Opening Balance (Shares)',
+  OB_L: 'Opening Balance (Loan)',
+  OB_A: 'Opening Balance (Advance)'
 };
-const TXN_NEG = new Set(['SW', 'LI', 'AI']); // LX/AX increase debt — handled separately in display
+const TXN_NEG = new Set(['SW', 'LI', 'AI']);
 
 function openMemberModal(msId) {
   const ms = state.memberships.find(m => m.id === msId);
@@ -1311,6 +1450,8 @@ function openMemberModal(msId) {
   document.getElementById('modal-title').textContent = 'Member Details';
   document.getElementById('modal-body').innerHTML = '';
   document.getElementById('modal-overlay').classList.add('open');
+  // Give the modal its own history entry
+  history.pushState({ tbNav: true, modal: true }, '');
 
   // Render directly into #modal-body — Record will re-render the same node
   renderMemberModalBody(document.getElementById('modal-body'), msId);
@@ -1664,6 +1805,43 @@ window.addEventListener('appinstalled', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 // DIVIDEND MODAL
 // ─────────────────────────────────────────────────────────────────────────────
+function openSetMeetingModal(gid) {
+  const g = state.groups[gid];
+  const body = el('div', { style: 'display:flex;flex-direction:column;gap:14px' });
+
+  const dateInp = inputEl({ type: 'date', value: g.nextMeeting || '' });
+  body.appendChild(fieldEl('Next Meeting Date', dateInp));
+
+  // Info note
+  body.appendChild(el('div', { style: 'font-size:12px;color:var(--muted);background:var(--green-pale);border:1px solid var(--green-border);border-radius:8px;padding:10px 12px;line-height:1.6' },
+    'Interest on all active loans and advances will be automatically charged the day before this meeting date.'
+  ));
+
+  const errEl = el('div', { class: 'err', style: 'display:none' });
+  body.appendChild(errEl);
+
+  const saveBtn = el('button', { class: 'btn btn-primary' }, 'Save Date');
+  saveBtn.addEventListener('click', () => {
+    const val = dateInp.value;
+    if (!val) { errEl.textContent = 'Please pick a date.'; errEl.style.display = ''; return; }
+    const picked = new Date(val);
+    picked.setHours(0,0,0,0);
+    const today = new Date(); today.setHours(0,0,0,0);
+    if (picked <= today) { errEl.textContent = 'Meeting date must be in the future.'; errEl.style.display = ''; return; }
+    state.groups[gid].nextMeeting = val;
+    saveState();
+    closeModal();
+  });
+
+  const cancelBtn = el('button', { class: 'btn btn-ghost' }, 'Cancel');
+  cancelBtn.addEventListener('click', closeModal);
+
+  const actions = el('div', { style: 'display:flex;gap:10px;justify-content:flex-end;margin-top:4px' }, cancelBtn, saveBtn);
+  body.appendChild(actions);
+  openModal('Set Next Meeting — ' + g.name, body);
+  dateInp.focus();
+}
+
 function openDividendModal(gid) {
   const g = state.groups[gid];
   const currentYear = new Date().getFullYear();
@@ -1828,52 +2006,27 @@ function openDividendModal(gid) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// SWIPE-BACK GESTURE
-// Right-swipe navigates back in pure JS.
-// Sets a flag so the popstate that the native browser also fires for the same
-// gesture doesn't call doGoBack() a second time (which would skip a page).
+// BACK NAVIGATION — single system: popstate only.
+// Both OS swipe-back (iOS/Android) and the hardware back button fire popstate.
+// We always re-push a guard entry after handling so the stack never empties.
+// The modal has its OWN history entry (pushed in openModal below) so:
+//   swipe 1 while modal open  → closes modal  (consumes modal entry)
+//   swipe 2 on the page below → goes back      (consumes page entry)
+// No touchend handler — eliminates double-firing that caused early app exit.
 // ─────────────────────────────────────────────────────────────────────────────
-(function () {
-  let startX = 0, startY = 0, tracking = false;
-  let _swipeJustFired = false;
-
-  document.addEventListener('touchstart', (e) => {
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-    tracking = startX < window.innerWidth * 0.35;
-  }, { passive: true });
-
-  document.addEventListener('touchend', (e) => {
-    if (!tracking) return;
-    const dx = e.changedTouches[0].clientX - startX;
-    const dy = e.changedTouches[0].clientY - startY;
-    if (dx > 70 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-      _swipeJustFired = true;
-      setTimeout(() => { _swipeJustFired = false; }, 400);
-      doGoBack();
-    }
-    tracking = false;
-  }, { passive: true });
-
-  // Hardware / Android back button — handled via popstate.
-  // Skip if we already handled it in touchend to avoid navigating back twice.
-  // Always re-pushes a guard entry so the browser stack never empties.
-  window.addEventListener('popstate', () => {
-    if (_swipeJustFired) {
-      // Swipe touchend already called doGoBack() — just restore the guard entry
-      _swipeJustFired = false;
-      history.pushState({ tbNav: true }, '');
-      return;
-    }
+window.addEventListener('popstate', () => {
+  const overlay = document.getElementById('modal-overlay');
+  if (overlay.classList.contains('open')) {
+    overlay.classList.remove('open');
+    renderPage();
+  } else {
     doGoBack();
-    history.pushState({ tbNav: true }, '');
-  });
-})();
+  }
+  // Re-push guard so the next back always has an entry to consume
+  history.pushState({ tbNav: true }, '');
+});
 
 applyMonthlyInterest();
-// Seed two entries: base (replaceState) + guard (pushState).
-// This means the hardware back button always fires popstate before hitting
-// the true bottom of the stack and exiting the app.
 history.replaceState({ tbNav: true }, '');
 history.pushState({ tbNav: true }, '');
 navigate('groups');

@@ -1,5 +1,5 @@
-// BUILD: 20260305220000
-const CACHE = 'tablebank-20260305220000';
+// BUILD: 20260306220000
+const CACHE = 'tablebank-20260306220000';
 const ASSETS = [
   './',
   './index.html',
