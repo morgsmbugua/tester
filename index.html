@@ -997,7 +997,7 @@ function renderGroupPage(gid) {
     el('div', { class: 'flex-row', style: 'flex-wrap:wrap;gap:8px' },
       el('button', { class: 'btn btn-danger btn-sm', onclick: () => confirmDeleteGroup(gid) }, 'Delete Group'),
       el('button', { class: 'btn btn-secondary btn-sm', onclick: () => openDividendModal(gid) }, '🎁 Dividends'),
-      el('button', { class: 'btn btn-primary', style: 'flex:1 0 100%', onclick: () => openAddMemberModal(gid) }, '+ Add Member')
+      el('button', { class: 'btn btn-primary', style: 'flex:1', onclick: () => openAddMemberModal(gid) }, '+ Add Member')
     )
   );
   wrap.appendChild(head);
